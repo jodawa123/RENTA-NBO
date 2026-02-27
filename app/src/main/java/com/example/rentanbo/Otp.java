@@ -24,6 +24,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.chaos.view.PinView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Random;
 
@@ -50,10 +57,14 @@ public class Otp extends AppCompatActivity {
     // Permission request code
     private static final int SMS_PERMISSION_CODE = 123;
 
+    // Firebase
+    private FirebaseAuth mAuth;
+    private DatabaseReference databaseReference;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+        StatusBarUtil.setLightStatusBar(this);
         setContentView(R.layout.activity_otp);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -61,6 +72,10 @@ public class Otp extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Initialize Firebase
+        mAuth = FirebaseAuth.getInstance();
+        databaseReference = FirebaseDatabase.getInstance().getReference();
 
         // Initialize views
         initViews();
@@ -286,10 +301,11 @@ public class Otp extends AppCompatActivity {
                 countDownTimer.cancel();
             }
 
-            // Navigate to Filters page
-            Intent intent = new Intent(Otp.this, Filters.class);
-            startActivity(intent);
-            finish();
+            // Get phone number
+            String phoneNumber = SharedData.getCurrentPhoneNumber();
+
+            // Check if user exists in database
+            checkIfUserExists(phoneNumber);
 
         } else {
             // Wrong OTP
@@ -302,6 +318,68 @@ public class Otp extends AppCompatActivity {
             // Optionally request focus again
             otpPinView.requestFocus();
         }
+    }
+
+    /**
+     * Check if this phone number already has a profile
+     */
+    private void checkIfUserExists(String phoneNumber) {
+        // Clean phone number for database key
+        String cleanPhone = phoneNumber.replace("+", "");
+
+        // Show loading
+        continueButton.setEnabled(false);
+        continueButton.setText("Checking...");
+
+        databaseReference.child("users").child(cleanPhone)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        continueButton.setEnabled(true);
+                        continueButton.setText("Continue");
+
+                        if (snapshot.exists()) {
+                            // RETURNING USER - profile exists
+                            Toast.makeText(Otp.this, "Welcome back!", Toast.LENGTH_SHORT).show();
+
+                            // Get existing user data
+                            String name = snapshot.child("name").getValue(String.class);
+                            String uid = snapshot.child("uid").getValue(String.class);
+
+                            // Handle anonymous linking (more on this in Filters)
+                            // For now, just go to Main App
+
+
+                            Intent intent = new Intent(Otp.this, HomePage.class);
+                            intent.putExtra("isReturningUser", true);
+                            intent.putExtra("phoneNumber", phoneNumber);
+                            intent.putExtra("name", name);
+                            startActivity(intent);
+                            finish();
+
+                        } else {
+                            // NEW USER - needs to complete profile
+                            Toast.makeText(Otp.this, "Please complete your profile", Toast.LENGTH_SHORT).show();
+
+                            // Go to Filters page
+                            Intent intent = new Intent(Otp.this, Filters.class);
+                            startActivity(intent);
+                            finish();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        continueButton.setEnabled(true);
+                        continueButton.setText("Continue");
+                        Toast.makeText(Otp.this, "Database error: " + error.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+
+                        // On error, still go to Filters as fallback
+                        startActivity(new Intent(Otp.this, Filters.class));
+                        finish();
+                    }
+                });
     }
 
     private boolean isEmulator() {

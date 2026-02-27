@@ -7,15 +7,13 @@
     android:layout_height="match_parent"
     tools:context=".Filters">
 
-
-
     <ImageButton
-        android:id="@+id/imageButton"
+        android:id="@+id/backButton"
         android:layout_width="45dp"
         android:layout_height="45dp"
         android:layout_marginStart="16dp"
         android:contentDescription="back button"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="30dp"
         android:backgroundTint="@android:color/transparent"
         android:src="@drawable/outline_arrow_left_64"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,7 +28,7 @@
         android:background="@color/lightgrey"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageButton" />
+        app:layout_constraintTop_toBottomOf="@+id/backButton" />
 
     <TextView
         android:id="@+id/textView3"
@@ -61,18 +59,6 @@
         app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
     <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="25dp"
-        android:layout_marginTop="30dp"
-        android:text="Prefered Neighborhood"
-        android:textColor="@color/black"
-        android:textSize="20sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/nameBox" />
-
-    <TextView
         android:id="@+id/textView9"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -83,6 +69,7 @@
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
+
 
     <EditText
         android:id="@+id/nameBox"
@@ -100,12 +87,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView9" />
 
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="25dp"
+        android:layout_marginTop="30dp"
+        android:text="Prefered Neighborhood"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nameBox" />
+
+
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:padding="5dp"
         android:orientation="horizontal"
         android:layout_marginHorizontal="20dp"
         android:weightSum="3"
@@ -117,7 +116,7 @@
 
         <Button
             android:id="@+id/rongaiBtn"
-            android:layout_width="120dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/lightgrey"
             android:paddingVertical="15dp"
@@ -127,7 +126,7 @@
 
         <Button
             android:id="@+id/kahawaBtn"
-            android:layout_width="120dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:paddingVertical="15dp"
@@ -194,7 +193,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:text="10"
+            android:text=""
             android:textColor="@color/green"
             android:textSize="34sp"
             android:textStyle="bold" />
@@ -226,12 +225,12 @@
         android:id="@+id/seekBar"
         android:layout_width="393dp"
         android:layout_height="29dp"
+        android:layout_marginStart="30dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="32dp"
-        android:max="50"
-        android:min="10"
         android:progressBackgroundTint="@color/green"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linear2" />
 
     <LinearLayout
@@ -249,7 +248,7 @@
 
 
         <TextView
-            android:id="@+id/textView5"
+            android:id="@+id/minBudget"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="10k"
@@ -257,16 +256,13 @@
             android:textSize="20sp" />
 
         <TextView
-            android:id="@+id/textView5"
+            android:id="@+id/maxBudget"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="50k"
             android:textAlignment="textEnd"
             android:textColor="@color/black"
             android:textSize="20sp" />
-
-
-
 
     </LinearLayout>
 
@@ -278,15 +274,12 @@
         android:layout_marginTop="100dp"
         android:backgroundTint="@color/green"
         android:paddingVertical="15dp"
-        android:text="Continue"
+        android:text="Create Profile"
         android:textColor="@color/darkgray"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linear3" />
-
-
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

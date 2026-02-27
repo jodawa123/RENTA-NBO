@@ -1,9 +1,25 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.RentaNBO" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Base.Theme.RentaNBO" parent="Theme.Material3.Light.NoActionBar">
+        <!-- This makes the status bar icons DARK (true = dark icons) -->
+        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+
+        <!-- Keep status bar transparent or set to light color -->
+        <item name="android:statusBarColor" tools:targetApi="21">@android:color/transparent</item>
+
+        <!-- Prevent system from forcing dark mode on your app -->
+        <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
     </style>
 
     <style name="Theme.RentaNBO" parent="Base.Theme.RentaNBO" />
+
+
+    <style name="Theme.RentaNBO.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.RentaNBO.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.RentaNBO.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

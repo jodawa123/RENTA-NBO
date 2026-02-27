@@ -8,6 +8,10 @@
     android:background="@color/green"
     tools:context=".MainActivity">
 
+
+
+
+
     <LinearLayout
         android:id="@+id/nameLogo"
         android:layout_width="match_parent"
@@ -32,7 +36,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/textBrandName"
+            android:id="@+id/textBrandName2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/alata"
@@ -85,6 +89,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageBrand" />
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

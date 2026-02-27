@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,15 +15,18 @@ public class PhoneVerification extends AppCompatActivity {
 
     private EditText phoneEditText;
     private Button sendNumberButton;
+    private ImageView backButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        StatusBarUtil.setLightStatusBar(this);
         setContentView(R.layout.activity_phone_verification);
 
         // Initialize views
         phoneEditText = findViewById(R.id.phoneNumber);
         sendNumberButton = findViewById(R.id.sendNumber);
+        backButton=findViewById(R.id.backButton);
 
         // Clear any existing phone number when starting fresh
         SharedData.clearPhoneNumber();
@@ -32,6 +36,14 @@ public class PhoneVerification extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 validateAndSendPhoneNumber();
+            }
+        });
+
+        // Back button
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
             }
         });
     }
