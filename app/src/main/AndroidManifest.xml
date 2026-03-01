@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <!-- If you're accessing internet, camera, etc., add to AndroidManifest.xml -->
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- Add SMS permission -->
+    <uses-permission android:name="android.permission.SEND_SMS" /> <!-- If you want to receive SMS for auto-reading (optional) -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
 
     <application
         android:allowBackup="true"
@@ -12,6 +21,26 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RentaNBO">
         <activity
+            android:name=".HomePage"
+            android:exported="false"
+            android:theme="@style/Theme.RentaNBO" />
+        />
+        <activity
+            android:name=".Filters"
+            android:exported="false"
+            android:theme="@style/Theme.RentaNBO" />
+        />
+        <activity
+            android:name=".Otp"
+            android:exported="false"
+            android:theme="@style/Theme.RentaNBO" />
+        />
+        <activity
+            android:name=".PhoneVerification"
+            android:exported="false"
+            android:theme="@style/Theme.RentaNBO" />
+        />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -20,6 +49,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
     </application>
 
 </manifest>

@@ -49,6 +49,7 @@ gradle-app.setting
 # LOCAL CONFIG
 # ===============================
 local.properties
+secrets.properties
 app/local.properties
 
 # ===============================

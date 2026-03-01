@@ -1,3 +1,63 @@
 <resources>
     <string name="app_name">RentaNBO</string>
+    <string name="title_activity_home_page">HomePage</string>
+
+    <!-- Main Activity Strings -->
+    <string name="switch_language_en">En</string>
+    <string name="switch_language_sw">Sw</string>
+    <string name="brand_name_part1">Renta</string>
+    <string name="brand_name_part2">NBO</string>
+    <string name="subtitle">Affordable Student Housing in Nairobi</string>
+    <string name="get_started">Get Started</string>
+
+    <!-- Phone Verification Strings -->
+    <string name="phone_verification_title">Enter your Phone Number</string>
+    <string name="phone_verification_sub_title">We will send you a verification code</string>
+    <string name="phone_verification_number">Phone number</string>
+    <string name="verification_tip">Your number is secure and will only be used for verification</string>
+    <string name="send_number_button">Send number</string>
+
+    <!-- OTP Strings -->
+    <string name="enter_verification_code">Enter Verification code</string>
+    <string name="code_sent_to">Code sent to phone number:</string>
+    <string name="didnt_receive_code">Didn\'t receive the code?</string>
+    <string name="seconds_remaining">Seconds remaining</string>
+    <string name="resend">Resend code</string>
+    <string name="continue_button">Continue</string>
+    <string name="paste_hint">You can paste the code from your SMS</string>
+
+    <!-- Filter/Preferences Strings -->
+    <string name="complete_profile">Complete Your Profile</string>
+    <string name="help_text">Help us find the perfect home for you</string>
+    <string name="full_name">Full name</string>
+    <string name="name_hint">Enter your name</string>
+    <string name="preferred_neighborhood">Preferred Neighborhood</string>
+    <string name="monthly_budget">Monthly Budget</string>
+    <string name="create_profile">Create Profile</string>
+    <string name="per_month">/month</string>
+
+    <!-- Neighborhood Names -->
+    <string name="rongai">Rongai</string>
+    <string name="kahawa">Kahawa</string>
+    <string name="langata">Langata</string>
+
+    <!-- Error Messages -->
+    <string name="error_enter_phone">Please enter your phone number</string>
+    <string name="error_valid_phone">Please enter a valid Kenyan phone number</string>
+    <string name="error_enter_otp">Please enter the verification code</string>
+    <string name="error_invalid_otp">Invalid verification code. Please try again.</string>
+    <string name="error_enter_name">Please enter your name</string>
+    <string name="error_select_neighborhood">Please select your preferred neighborhood</string>
+    <string name="error_session_expired">Session expired. Please enter your phone number again.</string>
+
+    <!-- Success Messages -->
+    <string name="otp_sent">Verification code sent</string>
+    <string name="verification_success">Verification successful!</string>
+    <string name="profile_created">Profile created successfully!</string>
+
+    <!-- Toast Messages -->
+    <string name="checking">Checking...</string>
+    <string name="welcome_back_toast">Welcome back!</string>
+    <string name="please_complete_profile">Please complete your profile</string>
+    <string name="action_settings">Settings</string>
 </resources>
