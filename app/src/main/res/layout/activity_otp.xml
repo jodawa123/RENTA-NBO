@@ -66,7 +66,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:fontFamily="@font/alata"
-        android:text="Enter Verification code"
+        android:text="@string/enter_verification_code"
         android:textColor="@color/black"
         android:textSize="34sp"
         android:textStyle="bold"
@@ -75,11 +75,11 @@
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
     <TextView
-        android:id="@+id/amount"
+        android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:text="Code sent to"
+        android:text="@string/code_sent_to"
         android:textColor="@color/grey"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -98,7 +98,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/amount" />
+        app:layout_constraintTop_toBottomOf="@+id/text" />
 
     <com.chaos.view.PinView
         android:id="@+id/otpbox"
@@ -118,12 +118,12 @@
         app:viewType="rectangle" />
 
     <TextView
-        android:id="@+id/editTextText"
+        android:id="@+id/textdidnt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:inputType="text"
-        android:text="Didn't recieve the code?"
+        android:text="@string/didnt_receive_code"
         android:textColor="@color/grey"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -139,7 +139,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextText">
+        app:layout_constraintTop_toBottomOf="@+id/textdidnt">
 
         <EditText
             android:id="@+id/secondCount"
@@ -150,10 +150,11 @@
             android:textAlignment="center" />
 
         <TextView
+            android:id="@+id/secondtext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="10dp"
-            android:text="Seconds remaining"
+            android:text="@string/seconds_remaining"
             android:textColor="@color/black"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -166,13 +167,13 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:backgroundTint="@color/yellow"
-        android:text="Resend"
+        android:text="@string/resend"
         android:textColor="@color/black"
         android:textSize="16sp"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextText" />
+        app:layout_constraintTop_toBottomOf="@+id/textdidnt" />
 
 
     <LinearLayout
@@ -189,7 +190,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextText">
+        app:layout_constraintTop_toBottomOf="@+id/textdidnt">
 
         <ImageView
             android:layout_width="25dp"
@@ -201,7 +202,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Your can paste the code from your SMS"
+            android:text="@string/paste_hint"
             android:textColor="@color/grey"
             android:textSize="18sp" />
 
@@ -220,8 +221,7 @@
         android:layout_marginTop="22dp"
         android:backgroundTint="@color/green"
         android:paddingVertical="15dp"
-        android:text="Send OTP
-"
+        android:text="@string/continue_button"
         android:textColor="@color/darkgray"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"

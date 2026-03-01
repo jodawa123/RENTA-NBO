@@ -24,6 +24,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.chaos.view.PinView;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -34,7 +35,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.Random;
 
-public class Otp extends AppCompatActivity {
+public class Otp extends BaseActivity {
 
     // UI Components
     private ImageButton backButton;
@@ -45,7 +46,9 @@ public class Otp extends AppCompatActivity {
     private Button resendButton;
     private Button continueButton;
     private LinearLayout timerLayout;
-    private LinearLayout infoLinearLayout;
+    private SwitchMaterial languageSwitch;
+    private TextView otp_title,otp_code_to,otp_didnt_recieve,otp_second_title,
+                     otp_tip;
 
     // OTP and Timer variables
     private String generatedOTP = "";
@@ -79,6 +82,7 @@ public class Otp extends AppCompatActivity {
 
         // Initialize views
         initViews();
+        registerAllViewsForTranslation();
 
         // Get phone number from SharedData
         String phoneNumber = SharedData.getCurrentPhoneNumber();
@@ -110,11 +114,21 @@ public class Otp extends AppCompatActivity {
         backButton = findViewById(R.id.imageButton2);
         phoneDisplayTextView = findViewById(R.id.phoneDisplay);
         otpPinView = findViewById(R.id.otpbox);
-        timerText = findViewById(R.id.editTextText);
+        timerText = findViewById(R.id.secondtext);
         secondCountEditText = findViewById(R.id.secondCount);
         resendButton = findViewById(R.id.buttonResend);
         continueButton = findViewById(R.id.sendNumber);
-        infoLinearLayout = findViewById(R.id.linear2);
+        languageSwitch=findViewById(R.id.switchlanguage);
+
+        otp_title=findViewById(R.id.textView5);
+        otp_code_to=findViewById(R.id.text);
+        otp_didnt_recieve=findViewById(R.id.textdidnt);
+        otp_tip=findViewById(R.id.textView4);
+
+
+
+        setupLanguageSwitch(languageSwitch);
+
 
         // Find the timer layout (LinearLayout containing secondCount)
         if (secondCountEditText.getParent() instanceof LinearLayout) {
@@ -400,5 +414,15 @@ public class Otp extends AppCompatActivity {
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
+    }
+    private void registerAllViewsForTranslation() {
+
+        registerForTranslation(otp_title, R.string.enter_verification_code);
+        registerForTranslation(otp_code_to, R.string.code_sent_to);
+        registerForTranslation(otp_didnt_recieve, R.string.didnt_receive_code);
+        registerForTranslation(timerText, R.string.seconds_remaining);
+        registerForTranslation(otp_tip, R.string.paste_hint);
+        registerForTranslation(resendButton, R.string.resend);
+        registerForTranslation(continueButton, R.string.continue_button);
     }
 }

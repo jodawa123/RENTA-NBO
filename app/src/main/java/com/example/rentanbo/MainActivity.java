@@ -75,8 +75,6 @@ public class MainActivity extends BaseActivity {
 
     private void registerAllViewsForTranslation() {
         // One line per view - that's it!
-        registerForTranslation(textBrandName, R.string.brand_name_part1);
-        registerForTranslation(textBrandName2, R.string.brand_name_part2);
         registerForTranslation(textSubtitle, R.string.subtitle);
         registerForTranslation(buttonStart, R.string.get_started);
     }

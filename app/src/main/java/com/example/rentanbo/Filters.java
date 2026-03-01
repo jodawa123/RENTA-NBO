@@ -20,6 +20,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -28,7 +29,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Filters extends AppCompatActivity {
+public class Filters extends BaseActivity {
 
     // UI Components
     private ImageButton backButton;
@@ -41,6 +42,9 @@ public class Filters extends AppCompatActivity {
     private Button createProfileButton;
     private TextView minBudgetText;
     private TextView maxBudgetText;
+    private SwitchMaterial languageSwitch;
+    private TextView title,subtitle,name_text,neighbourhood_text,
+                    budget_text,month_text;
 
     // Data variables
     private String selectedNeighborhood = "";
@@ -79,6 +83,7 @@ public class Filters extends AppCompatActivity {
         setupBudgetSeekBar();
         setupCreateProfileButton();
         setupBackButton();
+        registerAllViewsForTranslation();
     }
 
     private void initViews() {
@@ -90,6 +95,18 @@ public class Filters extends AppCompatActivity {
         amountEditText = findViewById(R.id.amount);
         seekBar = findViewById(R.id.seekBar);
         createProfileButton = findViewById(R.id.sendProfile);
+
+
+        title=findViewById(R.id.textView3);
+        subtitle=findViewById(R.id.textView);
+        name_text=findViewById(R.id.textView9);
+        neighbourhood_text=findViewById(R.id.textView2);
+        budget_text=findViewById(R.id.textView8);
+        month_text=findViewById(R.id.textView10);
+
+
+        languageSwitch=findViewById(R.id.switchlanguage);
+        setupLanguageSwitch(languageSwitch);
 
         // Find the min/max text views
         LinearLayout linear3 = findViewById(R.id.linear3);
@@ -444,5 +461,15 @@ public class Filters extends AppCompatActivity {
         SharedData.clearPhoneNumber();
         startActivity(new Intent(this, PhoneVerification.class));
         finish();
+    }
+    private void registerAllViewsForTranslation() {
+
+        registerForTranslation(title, R.string.complete_profile);
+        registerForTranslation(subtitle, R.string.help_text);
+        registerForTranslation(name_text, R.string.full_name);
+        registerForTranslation(neighbourhood_text, R.string.preferred_neighborhood);
+        registerForTranslation(budget_text, R.string.monthly_budget);
+        registerForTranslation(month_text, R.string.per_month);
+        registerForTranslation(createProfileButton, R.string.create_profile);
     }
 }
