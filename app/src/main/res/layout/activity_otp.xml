@@ -7,16 +7,46 @@
     android:layout_height="match_parent"
     tools:context=".Otp">
 
-    <ImageButton
-        android:id="@+id/imageButton2"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="30dp"
-        android:backgroundTint="@android:color/transparent"
+
+    <LinearLayout
+        android:id="@+id/toplinear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/outline_arrow_left_64" />
+
+        >
+        <ImageButton
+            android:id="@+id/imageButton2"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:layout_marginStart="16dp"
+            android:backgroundTint="@android:color/transparent"
+            app:srcCompat="@drawable/outline_arrow_left_64" />
+
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchlanguage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:text="En "
+            android:textAlignment="textEnd"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:thumb="@drawable/rounded_globe_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:thumbTint="@color/grey"
+            app:trackTint="@color/lightgrey" />
+    </LinearLayout>
+
+
 
     <ImageView
         android:id="@+id/imageView"
@@ -27,7 +57,7 @@
         android:layout_marginEnd="144dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageButton2"
+        app:layout_constraintTop_toBottomOf="@+id/toplinear"
         app:srcCompat="@drawable/phone" />
 
     <TextView
