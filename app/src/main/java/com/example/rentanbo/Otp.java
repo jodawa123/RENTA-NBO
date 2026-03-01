@@ -14,9 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -26,7 +24,6 @@ import androidx.core.view.WindowInsetsCompat;
 import com.chaos.view.PinView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -47,13 +44,14 @@ public class Otp extends BaseActivity {
     private Button continueButton;
     private LinearLayout timerLayout;
     private SwitchMaterial languageSwitch;
-    private TextView otp_title,otp_code_to,otp_didnt_recieve,otp_second_title,
-                     otp_tip;
+    private TextView otp_title, otp_code_to, otp_didnt_recieve, otp_second_title, otp_tip;
 
     // OTP and Timer variables
     private String generatedOTP = "";
     private CountDownTimer countDownTimer;
     private boolean isTimerRunning = false;
+    private boolean isOtpExpired = false;
+    private boolean isVerifying = false;
     private final int TOTAL_TIME = 30000; // 30 seconds in milliseconds
     private final int INTERVAL = 1000; // 1 second intervals
 
@@ -89,7 +87,7 @@ public class Otp extends BaseActivity {
 
         // Check if we have a phone number
         if (!SharedData.hasPhoneNumber()) {
-            Toast.makeText(this, "Session expired. Please enter your phone number again.", Toast.LENGTH_LONG).show();
+            showToast(R.string.error_session_expired);
             startActivity(new Intent(Otp.this, PhoneVerification.class));
             finish();
             return;
@@ -104,7 +102,7 @@ public class Otp extends BaseActivity {
         // Check SMS permission and send OTP
         checkSmsPermissionAndSendOtp(phoneNumber);
 
-        // IMPORTANT: Make sure PinView is focusable and clickable
+        // Make sure PinView is focusable and clickable
         otpPinView.setFocusable(true);
         otpPinView.setFocusableInTouchMode(true);
         otpPinView.setClickable(true);
@@ -118,17 +116,14 @@ public class Otp extends BaseActivity {
         secondCountEditText = findViewById(R.id.secondCount);
         resendButton = findViewById(R.id.buttonResend);
         continueButton = findViewById(R.id.sendNumber);
-        languageSwitch=findViewById(R.id.switchlanguage);
+        languageSwitch = findViewById(R.id.switchlanguage);
 
-        otp_title=findViewById(R.id.textView5);
-        otp_code_to=findViewById(R.id.text);
-        otp_didnt_recieve=findViewById(R.id.textdidnt);
-        otp_tip=findViewById(R.id.textView4);
-
-
+        otp_title = findViewById(R.id.textView5);
+        otp_code_to = findViewById(R.id.text);
+        otp_didnt_recieve = findViewById(R.id.textdidnt);
+        otp_tip = findViewById(R.id.textView4);
 
         setupLanguageSwitch(languageSwitch);
-
 
         // Find the timer layout (LinearLayout containing secondCount)
         if (secondCountEditText.getParent() instanceof LinearLayout) {
@@ -142,35 +137,43 @@ public class Otp extends BaseActivity {
 
         // Enable PinView for input
         otpPinView.setEnabled(true);
+
+        // Ensure continue button is enabled initially
+        continueButton.setEnabled(true);
+        continueButton.setClickable(true);
     }
 
     private void setupClickListeners() {
         // Back button
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
+        backButton.setOnClickListener(v -> {
+            onBackPressed();
         });
 
-        // Continue button - ONLY verification happens here now
-        continueButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                verifyOtp();
+        // Continue button - with proper state management
+        continueButton.setOnClickListener(v -> {
+            // Prevent multiple clicks
+            if (isVerifying) {
+                return;
             }
+
+            // Check if OTP is expired
+            if (isOtpExpired) {
+                showToast("Verification code expired. Please request a new one.");
+                // Highlight resend button
+                resendButton.requestFocus();
+                return;
+            }
+
+            verifyOtp();
         });
 
-        // Resend button
-        resendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String phoneNumber = SharedData.getCurrentPhoneNumber();
-                resendOtp(phoneNumber);
-            }
+        // Resend button - always enabled when visible
+        resendButton.setOnClickListener(v -> {
+            String phoneNumber = SharedData.getCurrentPhoneNumber();
+            resendOtp(phoneNumber);
         });
 
-        // Optional: Request focus for PinView
+        // Request focus for PinView
         otpPinView.requestFocus();
     }
 
@@ -200,20 +203,29 @@ public class Otp extends BaseActivity {
                 sendOtpViaSms(phoneNumber);
             } else {
                 // Permission denied
-                Toast.makeText(this, "SMS permission is required to send verification code",
-                        Toast.LENGTH_LONG).show();
-                // You could still let them test by showing the OTP in a toast
+                showToast("SMS permission is required to send verification code");
+
+                // For emulator testing, show OTP
                 if (isEmulator()) {
                     generatedOTP = generateOtp();
-                    Toast.makeText(this, "TEST MODE - OTP: " + generatedOTP,
-                            Toast.LENGTH_LONG).show();
+                    showToast("TEST MODE - OTP: " + generatedOTP);
                     startCountdownTimer();
+                } else {
+                    // If permission denied on real device, show resend button as fallback
+                    resendButton.setVisibility(View.VISIBLE);
+                    if (timerLayout != null) {
+                        timerLayout.setVisibility(View.GONE);
+                    }
                 }
             }
         }
     }
 
     private void sendOtpViaSms(String phoneNumber) {
+        // Reset expired flag
+        isOtpExpired = false;
+        isVerifying = false;
+
         // Generate 4-digit OTP
         generatedOTP = generateOtp();
 
@@ -223,22 +235,25 @@ public class Otp extends BaseActivity {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(phoneNumber, null, message, null, null);
 
-            Toast.makeText(this, "Verification code sent to " + phoneNumber,
-                    Toast.LENGTH_SHORT).show();
+            showToast(R.string.otp_sent);
 
             // Start the countdown timer
             startCountdownTimer();
 
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Failed to send SMS: " + e.getMessage(),
-                    Toast.LENGTH_SHORT).show();
+            showToast("Failed to send SMS: " + e.getMessage());
 
             // For testing purposes, if SMS fails (emulator), show the OTP
             if (isEmulator()) {
-                Toast.makeText(this, "TEST MODE - OTP: " + generatedOTP,
-                        Toast.LENGTH_LONG).show();
+                showToast("TEST MODE - OTP: " + generatedOTP);
                 startCountdownTimer();
+            } else {
+                // If SMS fails on real device, show resend button
+                resendButton.setVisibility(View.VISIBLE);
+                if (timerLayout != null) {
+                    timerLayout.setVisibility(View.GONE);
+                }
             }
         }
     }
@@ -249,6 +264,10 @@ public class Otp extends BaseActivity {
             countDownTimer.cancel();
         }
 
+        // Reset flags
+        isOtpExpired = false;
+        isVerifying = false;
+
         // Hide resend button, show timer
         resendButton.setVisibility(View.GONE);
         if (timerLayout != null) {
@@ -257,6 +276,10 @@ public class Otp extends BaseActivity {
 
         // Clear PinView
         otpPinView.setText("");
+
+        // Re-enable continue button
+        continueButton.setEnabled(true);
+        continueButton.setText(R.string.continue_button);
 
         // Send OTP again
         sendOtpViaSms(phoneNumber);
@@ -278,12 +301,25 @@ public class Otp extends BaseActivity {
 
             @Override
             public void onFinish() {
-                // Timer finished - show resend button, hide timer
+                // Timer finished - OTP expired
                 secondCountEditText.setText("0");
+                isOtpExpired = true;
+                isVerifying = false;
+
+                // Show resend button, hide timer
                 if (timerLayout != null) {
                     timerLayout.setVisibility(View.GONE);
                 }
                 resendButton.setVisibility(View.VISIBLE);
+
+                // Show toast notification that OTP expired
+                showToast("Verification code expired. Please request a new one.");
+
+                // Clear the PinView
+                otpPinView.setText("");
+
+                // Keep continue button enabled but it will show expiration message
+                continueButton.setEnabled(true);
             }
         }.start();
 
@@ -291,24 +327,40 @@ public class Otp extends BaseActivity {
     }
 
     private void verifyOtp() {
+        // Prevent multiple verification attempts
+        if (isVerifying) {
+            return;
+        }
+
+        // Double-check expiration
+        if (isOtpExpired) {
+            showToast("Verification code expired. Please request a new one.");
+            return;
+        }
+
         String enteredOtp = otpPinView.getText().toString().trim();
 
         if (enteredOtp.isEmpty()) {
-            Toast.makeText(this, "Please enter the verification code",
-                    Toast.LENGTH_SHORT).show();
+            showToast(R.string.error_enter_otp);
             return;
         }
 
         if (enteredOtp.length() < 4) {
-            Toast.makeText(this, "Please enter complete 4-digit code",
-                    Toast.LENGTH_SHORT).show();
+            showToast("Please enter complete 4-digit code");
             return;
         }
+
+        // Set verifying flag to prevent multiple clicks
+        isVerifying = true;
+
+        // Show loading state
+        continueButton.setEnabled(false);
+        continueButton.setText(R.string.checking);
 
         // Compare entered OTP with generated OTP
         if (enteredOtp.equals(generatedOTP)) {
             // OTP is correct
-            Toast.makeText(this, "Verification successful!", Toast.LENGTH_SHORT).show();
+            showToast(R.string.verification_success);
 
             // Cancel timer
             if (countDownTimer != null) {
@@ -323,13 +375,17 @@ public class Otp extends BaseActivity {
 
         } else {
             // Wrong OTP
-            Toast.makeText(this, "Invalid verification code. Please try again.",
-                    Toast.LENGTH_SHORT).show();
+            showToast(R.string.error_invalid_otp);
 
             // Clear PinView
             otpPinView.setText("");
 
-            // Optionally request focus again
+            // Reset button state
+            continueButton.setEnabled(true);
+            continueButton.setText(R.string.continue_button);
+            isVerifying = false;
+
+            // Request focus again
             otpPinView.requestFocus();
         }
     }
@@ -341,28 +397,16 @@ public class Otp extends BaseActivity {
         // Clean phone number for database key
         String cleanPhone = phoneNumber.replace("+", "");
 
-        // Show loading
-        continueButton.setEnabled(false);
-        continueButton.setText("Checking...");
-
         databaseReference.child("users").child(cleanPhone)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        continueButton.setEnabled(true);
-                        continueButton.setText("Continue");
-
                         if (snapshot.exists()) {
                             // RETURNING USER - profile exists
-                            Toast.makeText(Otp.this, "Welcome back!", Toast.LENGTH_SHORT).show();
+                            showToast(R.string.welcome_back_toast);
 
                             // Get existing user data
                             String name = snapshot.child("name").getValue(String.class);
-                            String uid = snapshot.child("uid").getValue(String.class);
-
-                            // Handle anonymous linking (more on this in Filters)
-                            // For now, just go to Main App
-
 
                             Intent intent = new Intent(Otp.this, HomePage.class);
                             intent.putExtra("isReturningUser", true);
@@ -373,7 +417,7 @@ public class Otp extends BaseActivity {
 
                         } else {
                             // NEW USER - needs to complete profile
-                            Toast.makeText(Otp.this, "Please complete your profile", Toast.LENGTH_SHORT).show();
+                            showToast(R.string.please_complete_profile);
 
                             // Go to Filters page
                             Intent intent = new Intent(Otp.this, Filters.class);
@@ -384,10 +428,12 @@ public class Otp extends BaseActivity {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
+                        // Reset button state
                         continueButton.setEnabled(true);
-                        continueButton.setText("Continue");
-                        Toast.makeText(Otp.this, "Database error: " + error.getMessage(),
-                                Toast.LENGTH_SHORT).show();
+                        continueButton.setText(R.string.continue_button);
+                        isVerifying = false;
+
+                        showToast("Database error: " + error.getMessage());
 
                         // On error, still go to Filters as fallback
                         startActivity(new Intent(Otp.this, Filters.class));
@@ -407,6 +453,14 @@ public class Otp extends BaseActivity {
                 || "google_sdk".equals(Build.PRODUCT);
     }
 
+    protected void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    protected void showToast(int stringResId) {
+        Toast.makeText(this, stringResId, Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -415,8 +469,8 @@ public class Otp extends BaseActivity {
             countDownTimer.cancel();
         }
     }
-    private void registerAllViewsForTranslation() {
 
+    private void registerAllViewsForTranslation() {
         registerForTranslation(otp_title, R.string.enter_verification_code);
         registerForTranslation(otp_code_to, R.string.code_sent_to);
         registerForTranslation(otp_didnt_recieve, R.string.didnt_receive_code);

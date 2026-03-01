@@ -19,7 +19,7 @@
 
     <!-- OTP Strings -->
     <string name="enter_verification_code">Enter Verification code</string>
-    <string name="code_sent_to">Code sent to</string>
+    <string name="code_sent_to">Code sent to phone number:</string>
     <string name="didnt_receive_code">Didn\'t receive the code?</string>
     <string name="seconds_remaining">Seconds remaining</string>
     <string name="resend">Resend code</string>
@@ -34,7 +34,6 @@
     <string name="preferred_neighborhood">Preferred Neighborhood</string>
     <string name="monthly_budget">Monthly Budget</string>
     <string name="create_profile">Create Profile</string>
-    <string name="welcome_back">Welcome back!</string>
     <string name="per_month">/month</string>
 
     <!-- Neighborhood Names -->

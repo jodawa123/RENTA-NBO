@@ -157,9 +157,9 @@
         app:layout_constraintTop_toBottomOf="@+id/linearLayout">
 
         <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            app:srcCompat="@drawable/outline_asterisk_24" />
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            app:srcCompat="@drawable/outline_atr_24" />
 
         <TextView
             android:id="@+id/textView4"
