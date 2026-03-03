@@ -14,6 +14,7 @@ firebaseFirestore = "26.1.0"
 pinview = "1.4.4"
 firebaseAuth = "24.0.1"
 firebaseMlVision = "24.1.0"
+recyclerview = "1.4.0"
 
 [libraries]
 generativeai = { module = "com.google.ai.client.generativeai:generativeai", version.ref = "generativeai" }
@@ -29,6 +30,7 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 pinview = { module = "io.github.chaosleung:pinview", version.ref = "pinview" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 firebase-ml-vision = { group = "com.google.firebase", name = "firebase-ml-vision", version.ref = "firebaseMlVision" }
+recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

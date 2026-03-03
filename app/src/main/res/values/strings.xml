@@ -41,6 +41,28 @@
     <string name="kahawa">Kahawa</string>
     <string name="langata">Langata</string>
 
+
+
+    <!-- HomePage -->
+
+    <string name="home_page_title">Find Your Home</string>
+    <string name="welcome_text">Hello\,</string>
+    <string name="search_bar_hint">Search by location,type</string>
+    <string name="home_budget_title">Budget Range</string>
+    <string name="home_amenities_title">Amenities</string>
+    <string name="wifi">WiFi</string>
+    <string name="parking">Parking</string>
+    <string name="security">Security</string>
+    <string name="borehole">Borehole</string>
+    <string name="house_type">House Type</string>
+    <string name="bedsitter"> Bed-sitter</string>
+    <string name="studio"> Studio</string>
+    <string name="onebed">1-Bedroom</string>
+    <string name="list">List</string>
+    <string name="map">Map</string>
+    <string name="results">1 result found</string>
+
+
     <!-- Error Messages -->
     <string name="error_enter_phone">Please enter your phone number</string>
     <string name="error_valid_phone">Please enter a valid Kenyan phone number</string>
