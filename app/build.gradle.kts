@@ -49,7 +49,14 @@ dependencies {
     implementation("com.google.mlkit:translate:17.0.1")
    // If you need language identification
     implementation("com.google.mlkit:language-id:17.0.4")
+
+
+    // Glide for image loading
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+
     implementation(libs.firebase.auth)
+    implementation(libs.recyclerview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
