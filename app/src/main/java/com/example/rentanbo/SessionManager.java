@@ -19,7 +19,6 @@ public class SessionManager {
     private static final String KEY_BUDGET_MIN = "budget_min";
     private static final String KEY_BUDGET_MAX = "budget_max";
     private static final String KEY_LOGIN_TIME = "login_time";
-    private static final long SESSION_TIMEOUT_MS = 30L * 24 * 60 * 60 * 1000; // 30 days
 
     private static SessionManager instance;
     private final SharedPreferences sharedPreferences;
@@ -64,16 +63,8 @@ public class SessionManager {
             return false;
         }
 
-        // Check if session has expired (30 days)
-        long loginTime = sharedPreferences.getLong(KEY_LOGIN_TIME, 0);
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - loginTime > SESSION_TIMEOUT_MS) {
-            // Session expired, clear it
-            clearSession();
-            return false;
-        }
-
-        return true;
+        String phone = getPhoneNumber();
+        return phone != null && !phone.trim().isEmpty();
     }
 
     /**

@@ -433,6 +433,16 @@ public class Filters extends BaseActivity {
                         Toast.makeText(Filters.this,
                                 "Profile created successfully!", Toast.LENGTH_LONG).show();
 
+                        int budgetMax = budgetValue * 1000;
+                        SessionManager.getInstance(Filters.this).saveSession(
+                                phoneNumber,
+                                name,
+                                uid,
+                                selectedNeighborhood,
+                                10000,
+                                budgetMax
+                        );
+
                         // Also save a reference from UID to phone (optional, for reverse lookup)
                         databaseReference.child("userPhones").child(uid).setValue(phoneKey);
 
@@ -441,6 +451,10 @@ public class Filters extends BaseActivity {
                         intent.putExtra("isNewUser", true);
                         intent.putExtra("name", name);
                         intent.putExtra("phoneNumber", phoneNumber);
+                        intent.putExtra("userId", uid);
+                        intent.putExtra("neighborhood", selectedNeighborhood);
+                        intent.putExtra("budgetMin", 10000);
+                        intent.putExtra("budgetMax", budgetMax);
                         startActivity(intent);
                         finish();
 
@@ -458,6 +472,7 @@ public class Filters extends BaseActivity {
      */
     private void logout() {
         mAuth.signOut();
+        SessionManager.getInstance(this).clearSession();
         SharedData.clearPhoneNumber();
         startActivity(new Intent(this, PhoneVerification.class));
         finish();

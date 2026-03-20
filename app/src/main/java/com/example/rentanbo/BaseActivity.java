@@ -62,6 +62,8 @@ public abstract class BaseActivity extends AppCompatActivity {
                     translationManager.switchToEnglish(BaseActivity.this);
                 }
 
+                onLanguageChanged(isChecked);
+
                 // Show toast
                 String message = isChecked ?
                         "Language switched to Swahili" :
@@ -85,6 +87,10 @@ public abstract class BaseActivity extends AppCompatActivity {
         if (translationManager != null && view != null) {
             translationManager.registerView(this, view, stringResId);
         }
+    }
+
+    protected void onLanguageChanged(boolean isSwahili) {
+        // Optional override in child activities for dynamic text updates.
     }
 
     protected void showToast(String message) {

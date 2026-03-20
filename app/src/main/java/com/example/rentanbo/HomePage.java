@@ -61,6 +61,7 @@ public class HomePage extends BaseActivity {
         receiveUserData();
         initCore();
         initViews();
+        registerAllViewsForTranslation();
         setupRecyclerView();
         setupFilterToggle();
         setupBudgetSeekBar();
@@ -93,6 +94,25 @@ public class HomePage extends BaseActivity {
 
         if (phoneNumber.isEmpty()) {
             phoneNumber = SharedData.getCurrentPhoneNumber();
+        }
+
+        if (phoneNumber.isEmpty()) {
+            SessionManager sessionManager = SessionManager.getInstance(this);
+            if (sessionManager.isUserLoggedIn()) {
+                phoneNumber = sessionManager.getPhoneNumber();
+                if (userName.isEmpty()) userName = sessionManager.getUserName();
+                if (userId.isEmpty()) userId = sessionManager.getUserId();
+                if (preferredNeighborhood.isEmpty()) {
+                    preferredNeighborhood = sessionManager.getPreferredNeighborhood();
+                }
+
+                if (userBudgetMin <= 0) {
+                    userBudgetMin = sessionManager.getBudgetMin();
+                }
+                if (userBudgetMax <= 0) {
+                    userBudgetMax = sessionManager.getBudgetMax();
+                }
+            }
         }
     }
 
@@ -184,7 +204,7 @@ public class HomePage extends BaseActivity {
     }
 
     private void applyProfileAndLoadListings() {
-        welcomeName.setText(" " + (userName.isEmpty() ? "Guest" : userName));
+        welcomeName.setText(" " + (userName.isEmpty() ? getLocalizedGuestName() : userName));
 
         filterState.setMinPrice(userBudgetMin);
         filterState.setMaxPrice(userBudgetMax);
@@ -258,7 +278,10 @@ public class HomePage extends BaseActivity {
     }
 
     private void updateBudgetText(int min, int max) {
-        budgetRangeText.setText("KSh " + min + " - " + max);
+        String budgetText = isSwahiliModeEnabled()
+                ? "KSh " + min + " hadi " + max
+                : "KSh " + min + " - " + max;
+        budgetRangeText.setText(budgetText);
     }
 
     // ================= CHIPS =================
@@ -344,25 +367,42 @@ public class HomePage extends BaseActivity {
             listButton.setBackgroundTintList(
                     ContextCompat.getColorStateList(this, R.color.lightgrey));
 
-            showToast("Map view coming soon");
+            showToast(isSwahiliModeEnabled()
+                    ? "Mwonekano wa ramani unakuja hivi karibuni"
+                    : "Map view coming soon");
         });
     }
 
     // ================= LANGUAGE =================
     private void setupLanguageSwitch() {
+        setupLanguageSwitch(languageSwitch);
+    }
 
-        if (languageSwitch == null) return;
+    @Override
+    protected void onLanguageChanged(boolean isSwahili) {
+        welcomeName.setText(" " + (userName.isEmpty() ? getLocalizedGuestName() : userName));
+        updateBudgetText(filterState.getMinPrice(), filterState.getMaxPrice());
+        updateResultsCount(adapter != null ? adapter.getItemCount() : 0);
+    }
 
-        languageSwitch.setChecked("sw".equals(userLanguage));
-
-        languageSwitch.setOnCheckedChangeListener(
-                (buttonView, isChecked) -> {
-
-                    userLanguage = isChecked ? "sw" : "en";
-
-                    showToast("Language: " +
-                            (isChecked ? "Swahili" : "English"));
-                });
+    private void registerAllViewsForTranslation() {
+        registerForTranslation(findViewById(R.id.textView6), R.string.home_page_title);
+        registerForTranslation(findViewById(R.id.textView11), R.string.welcome_text);
+        registerForTranslation(findViewById(R.id.search_bar), R.string.search_bar_hint);
+        registerForTranslation(findViewById(R.id.textView12), R.string.home_budget_title);
+        registerForTranslation(findViewById(R.id.textView13), R.string.home_budget_range_default);
+        registerForTranslation(findViewById(R.id.textView14), R.string.home_amenities_title);
+        registerForTranslation(findViewById(R.id.chip), R.string.wifi);
+        registerForTranslation(findViewById(R.id.chip2), R.string.parking);
+        registerForTranslation(findViewById(R.id.chip3), R.string.security);
+        registerForTranslation(findViewById(R.id.chip4), R.string.borehole);
+        registerForTranslation(findViewById(R.id.textView15), R.string.house_type);
+        registerForTranslation(findViewById(R.id.chip5), R.string.studio);
+        registerForTranslation(findViewById(R.id.chip6), R.string.bedsitter);
+        registerForTranslation(findViewById(R.id.chip7), R.string.onebed);
+        registerForTranslation(findViewById(R.id.button), R.string.list);
+        registerForTranslation(findViewById(R.id.button2), R.string.map);
+        registerForTranslation(findViewById(R.id.editTextText2), R.string.results);
     }
 
     // ================= LOAD LISTINGS =================
@@ -393,8 +433,20 @@ public class HomePage extends BaseActivity {
     }
 
     private void updateResultsCount(int count) {
-        resultsCount.setText(
-                count + (count == 1 ?
-                        " result found" : " results found"));
+        if (isSwahiliModeEnabled()) {
+            resultsCount.setText(count + " matokeo yamepatikana");
+            return;
+        }
+        resultsCount.setText(count + (count == 1 ? " result found" : " results found"));
+    }
+
+    private boolean isSwahiliModeEnabled() {
+        return translationManager != null && translationManager.isSwahiliMode();
+    }
+
+    private String getLocalizedGuestName() {
+        return isSwahiliModeEnabled()
+                ? "Mgeni"
+                : "Guest";
     }
 }

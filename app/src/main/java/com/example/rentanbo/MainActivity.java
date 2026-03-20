@@ -26,6 +26,24 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SessionManager sessionManager = SessionManager.getInstance(this);
+        if (sessionManager.isUserLoggedIn()) {
+            SharedData.setCurrentPhoneNumber(sessionManager.getPhoneNumber());
+
+            Intent homeIntent = new Intent(MainActivity.this, HomePage.class);
+            homeIntent.putExtra("isReturningUser", true);
+            homeIntent.putExtra("phoneNumber", sessionManager.getPhoneNumber());
+            homeIntent.putExtra("name", sessionManager.getUserName());
+            homeIntent.putExtra("userId", sessionManager.getUserId());
+            homeIntent.putExtra("neighborhood", sessionManager.getPreferredNeighborhood());
+            homeIntent.putExtra("budgetMin", sessionManager.getBudgetMin());
+            homeIntent.putExtra("budgetMax", sessionManager.getBudgetMax());
+            startActivity(homeIntent);
+            finish();
+            return;
+        }
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 

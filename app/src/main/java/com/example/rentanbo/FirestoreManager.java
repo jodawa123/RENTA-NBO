@@ -204,49 +204,73 @@ public class FirestoreManager {
                 });
     }
 
-    // =========================
-    // IN-MEMORY FILTERS
-    // =========================
+
+
+// =========================
+// IN-MEMORY FILTERS (FIXED)
+// =========================
     private boolean shouldIncludeListing(Listing listing, FilterState filterState) {
 
         if (listing == null) return false;
 
-        // House Type Filter (case-insensitive)
+        // ================= HOUSE TYPE =================
         if (!filterState.getSelectedHouseTypes().isEmpty()) {
 
             if (listing.getHouseType() == null) return false;
 
-            String listingHouseType = listing.getHouseType().toLowerCase();
+            String listingHouseType = listing.getHouseType().trim().toLowerCase();
 
-            if (!filterState.getSelectedHouseTypes().contains(listingHouseType)) {
-                return false;
-            }
-        }
-
-        // Amenities Filter (case-insensitive)
-        if (!filterState.getSelectedAmenities().isEmpty()) {
-
-            if (listing.getAmenities() == null) return false;
-
-            List<String> listingAmenitiesLower = new ArrayList<>();
-
-            for (String amenity : listing.getAmenities()) {
-                listingAmenitiesLower.add(amenity.toLowerCase());
-            }
-
-            for (String selectedAmenity : filterState.getSelectedAmenities()) {
-                if (!listingAmenitiesLower.contains(selectedAmenity.toLowerCase())) {
-                    return false;
+            boolean match = false;
+            for (String selected : filterState.getSelectedHouseTypes()) {
+                if (listingHouseType.equals(selected.trim().toLowerCase())) {
+                    match = true;
+                    break;
                 }
             }
+
+            if (!match) return false;
         }
 
-        // Search Filter (title OR neighborhood)
+        // ================= AMENITIES =================
+        if (!filterState.getSelectedAmenities().isEmpty()) {
+
+            if (listing.getAmenities() == null || listing.getAmenities().isEmpty()) {
+                return false;
+            }
+
+            // Normalize listing amenities
+            List<String> listingAmenitiesLower = new ArrayList<>();
+            for (String amenity : listing.getAmenities()) {
+                if (amenity != null) {
+                    listingAmenitiesLower.add(amenity.trim().toLowerCase());
+                }
+            }
+
+            // Check ALL selected amenities exist
+            for (String selectedAmenity : filterState.getSelectedAmenities()) {
+
+                boolean found = false;
+
+                for (String a : listingAmenitiesLower) {
+                    if (a.equals(selectedAmenity.trim().toLowerCase())) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) return false;
+            }
+        }
+
+        // ================= SEARCH =================
         if (!filterState.getSearchQuery().isEmpty()) {
 
-            String queryLower = filterState.getSearchQuery().toLowerCase();
+            String queryLower = filterState.getSearchQuery().trim().toLowerCase();
 
-            String title = listing.getTitle() != null ? listing.getTitle().toLowerCase() : "";
+            String title = listing.getTitle() != null
+                    ? listing.getTitle().toLowerCase()
+                    : "";
+
             String neighborhood = listing.getNeighborhood() != null
                     ? listing.getNeighborhood().toLowerCase()
                     : "";

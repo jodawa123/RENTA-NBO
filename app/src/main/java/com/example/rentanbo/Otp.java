@@ -473,11 +473,34 @@ public class Otp extends BaseActivity {
 
                         if (exists) {
                             showToast(R.string.welcome_back_toast);
+
                             String name = snapshot.child("name").getValue(String.class);
+                            String uid = snapshot.child("uid").getValue(String.class);
+                            String neighborhood = snapshot.child("preferredNeighborhood").getValue(String.class);
+                            Long monthlyBudget = snapshot.child("monthlyBudget").getValue(Long.class);
+
+                            int budgetMax = 50000;
+                            if (monthlyBudget != null) {
+                                budgetMax = (int) Math.max(10000, Math.min(50000, monthlyBudget));
+                            }
+
+                            SessionManager.getInstance(Otp.this).saveSession(
+                                    phoneNumber,
+                                    name != null ? name : "",
+                                    uid != null ? uid : "",
+                                    neighborhood != null ? neighborhood : "",
+                                    10000,
+                                    budgetMax
+                            );
+
                             Intent intent = new Intent(Otp.this, HomePage.class);
                             intent.putExtra("isReturningUser", true);
                             intent.putExtra("phoneNumber", phoneNumber);
                             intent.putExtra("name", name);
+                            intent.putExtra("userId", uid);
+                            intent.putExtra("neighborhood", neighborhood);
+                            intent.putExtra("budgetMin", 10000);
+                            intent.putExtra("budgetMax", budgetMax);
                             android.util.Log.d("Otp", "Navigating to HomePage for returning user: " + name);
                             startActivity(intent);
                             finish();

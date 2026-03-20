@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import androidx.annotation.StringRes;
@@ -254,6 +255,8 @@ public class TranslationManager {
             ((Button) view).setText(text);
         } else if (view instanceof EditText) {
             ((EditText) view).setHint(text);
+        } else if (view instanceof SearchView) {
+            ((SearchView) view).setQueryHint(text);
         } else if (view instanceof SwitchMaterial) {
             ((SwitchMaterial) view).setText(text);
         }
