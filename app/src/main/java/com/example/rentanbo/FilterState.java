@@ -27,6 +27,11 @@ public class FilterState {
         return instance;
     }
 
+    // ================= NORMALIZATION HELPER =================
+    private String normalize(String value) {
+        return value == null ? "" : value.trim().toLowerCase();
+    }
+
     // ================= PRICE =================
     public int getMinPrice() {
         return minPrice;
@@ -46,13 +51,13 @@ public class FilterState {
 
     // ================= AMENITIES =================
     public Set<String> getSelectedAmenities() {
-        return selectedAmenities;
+        return selectedAmenities != null ? selectedAmenities : new HashSet<>();
     }
 
     public void toggleAmenity(String amenity) {
-        if (amenity == null) return;
+        String normalized = normalize(amenity);
 
-        String normalized = amenity.toLowerCase().trim();
+        if (normalized.isEmpty()) return;
 
         if (selectedAmenities.contains(normalized)) {
             selectedAmenities.remove(normalized);
@@ -63,13 +68,13 @@ public class FilterState {
 
     // ================= HOUSE TYPES =================
     public Set<String> getSelectedHouseTypes() {
-        return selectedHouseTypes;
+        return selectedHouseTypes != null ? selectedHouseTypes : new HashSet<>();
     }
 
     public void toggleHouseType(String houseType) {
-        if (houseType == null) return;
+        String normalized = normalize(houseType);
 
-        String normalized = houseType.toLowerCase().trim();
+        if (normalized.isEmpty()) return;
 
         if (selectedHouseTypes.contains(normalized)) {
             selectedHouseTypes.remove(normalized);
@@ -80,28 +85,20 @@ public class FilterState {
 
     // ================= SEARCH =================
     public String getSearchQuery() {
-        return searchQuery;
+        return searchQuery != null ? searchQuery : "";
     }
 
     public void setSearchQuery(String searchQuery) {
-        if (searchQuery == null) {
-            this.searchQuery = "";
-        } else {
-            this.searchQuery = searchQuery.trim().toLowerCase();
-        }
+        this.searchQuery = normalize(searchQuery);
     }
 
     // ================= NEIGHBORHOOD =================
     public String getNeighborhood() {
-        return neighborhood;
+        return neighborhood != null ? neighborhood : "";
     }
 
     public void setNeighborhood(String neighborhood) {
-        if (neighborhood == null) {
-            this.neighborhood = "";
-        } else {
-            this.neighborhood = neighborhood.trim();
-        }
+        this.neighborhood = neighborhood == null ? "" : neighborhood.trim();
     }
 
     // ================= RESET =================

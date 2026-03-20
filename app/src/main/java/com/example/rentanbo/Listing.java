@@ -3,6 +3,7 @@ package com.example.rentanbo;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.PropertyName;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Listing {
@@ -16,7 +17,6 @@ public class Listing {
     private GeoPoint location;
     private String physicalAddress;
     private Landlord landlord;
-    // Store createdAt as Object to accept both Firestore Timestamps and numeric values
     private Object createdAt;
 
     // Empty constructor for Firestore
@@ -32,45 +32,52 @@ public class Listing {
         this.images = images;
     }
 
-    // Getters and Setters
-    public String getId() { return id; }
+    // ================= GETTERS & SETTERS =================
+
+    public String getId() { return id != null ? id : ""; }
     public void setId(String id) { this.id = id; }
 
-    public String getTitle() { return title; }
+    public String getTitle() { return title != null ? title : ""; }
     public void setTitle(String title) { this.title = title; }
 
     public int getPrice() { return price; }
     public void setPrice(int price) { this.price = price; }
 
-    public String getNeighborhood() { return neighborhood; }
+    public String getNeighborhood() { return neighborhood != null ? neighborhood : ""; }
     public void setNeighborhood(String neighborhood) { this.neighborhood = neighborhood; }
 
-    public String getHouseType() { return houseType; }
+    public String getHouseType() { return houseType != null ? houseType : ""; }
     public void setHouseType(String houseType) { this.houseType = houseType; }
 
-    public List<String> getAmenities() { return amenities; }
+    public List<String> getAmenities() {
+        return amenities != null ? amenities : new ArrayList<>();
+    }
     public void setAmenities(List<String> amenities) { this.amenities = amenities; }
 
-    public List<String> getImages() { return images; }
+    public List<String> getImages() {
+        return images != null ? images : new ArrayList<>();
+    }
     public void setImages(List<String> images) { this.images = images; }
 
     public GeoPoint getLocation() { return location; }
     public void setLocation(GeoPoint location) { this.location = location; }
 
-    public String getPhysicalAddress() { return physicalAddress; }
-    public void setPhysicalAddress(String physicalAddress) { this.physicalAddress = physicalAddress; }
+    public String getPhysicalAddress() {
+        return physicalAddress != null ? physicalAddress : "";
+    }
+    public void setPhysicalAddress(String physicalAddress) {
+        this.physicalAddress = physicalAddress;
+    }
 
     public Landlord getLandlord() { return landlord; }
     public void setLandlord(Landlord landlord) { this.landlord = landlord; }
 
-    /**
-     * Returns createdAt in milliseconds since epoch. Handles Firestore Timestamp and numeric types.
-     */
+    // ================= CREATED AT =================
+
     @PropertyName("createdAt")
     public long getCreatedAt() {
         if (createdAt == null) return 0L;
 
-        // If stored as Firestore Timestamp
         if (createdAt instanceof Timestamp) {
             try {
                 return ((Timestamp) createdAt).toDate().getTime();
@@ -79,18 +86,10 @@ public class Listing {
             }
         }
 
-        // If stored as Long, Integer, Double, etc.
-        if (createdAt instanceof Long) {
-            return (Long) createdAt;
-        }
-        if (createdAt instanceof Integer) {
-            return ((Integer) createdAt).longValue();
-        }
-        if (createdAt instanceof Double) {
-            return ((Double) createdAt).longValue();
-        }
+        if (createdAt instanceof Long) return (Long) createdAt;
+        if (createdAt instanceof Integer) return ((Integer) createdAt).longValue();
+        if (createdAt instanceof Double) return ((Double) createdAt).longValue();
 
-        // Fallback: attempt to parse string
         try {
             return Long.parseLong(createdAt.toString());
         } catch (Exception e) {
@@ -98,15 +97,23 @@ public class Listing {
         }
     }
 
-    /**
-     * Setter used by Firestore mapping. Accepts Timestamp or numeric values.
-     */
     @PropertyName("createdAt")
     public void setCreatedAt(Object createdAt) {
         this.createdAt = createdAt;
     }
 
-    // Inner Landlord class
+    // ================= GEO HELPERS (NEW) =================
+
+    public double getLatitude() {
+        return location != null ? location.getLatitude() : 0.0;
+    }
+
+    public double getLongitude() {
+        return location != null ? location.getLongitude() : 0.0;
+    }
+
+    // ================= LANDLORD =================
+
     public static class Landlord {
         private String name;
         private String phone;
@@ -120,18 +127,18 @@ public class Listing {
             this.email = email;
         }
 
-        // Getters and Setters
-        public String getName() { return name; }
+        public String getName() { return name != null ? name : ""; }
         public void setName(String name) { this.name = name; }
 
-        public String getPhone() { return phone; }
+        public String getPhone() { return phone != null ? phone : ""; }
         public void setPhone(String phone) { this.phone = phone; }
 
-        public String getEmail() { return email; }
+        public String getEmail() { return email != null ? email : ""; }
         public void setEmail(String email) { this.email = email; }
     }
 
-    // Helper method to get formatted price
+    // ================= UTIL =================
+
     public String getFormattedPrice() {
         return String.format("%,d", price);
     }

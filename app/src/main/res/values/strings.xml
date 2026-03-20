@@ -62,6 +62,16 @@
     <string name="list">List</string>
     <string name="map">Map</string>
     <string name="results">1 result found</string>
+    <string name="home_budget_range_format_en">KSh %1$,d - %2$,d</string>
+    <string name="home_budget_range_format_sw">KSh %1$,d hadi %2$,d</string>
+    <string name="results_count_single_en">%1$d result found</string>
+    <string name="results_count_plural_en">%1$d results found</string>
+    <string name="results_count_single_sw">%1$d matokeo yamepatikana</string>
+    <string name="results_count_plural_sw">%1$d matokeo yamepatikana</string>
+    <string name="map_view_coming_soon_en">Map view coming soon</string>
+    <string name="map_view_coming_soon_sw">Mwonekano wa ramani unakuja hivi karibuni</string>
+    <string name="guest_en">Guest</string>
+    <string name="guest_sw">Mgeni</string>
 
 
     <!-- Error Messages -->
