@@ -5,43 +5,40 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="12dp"
     tools:context=".HomePage">
 
-
+    <!-- HEADER: Title + Language Switch -->
     <LinearLayout
         android:id="@+id/top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="52dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="16dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:weightSum="2"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="1dp">
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:id="@+id/textView6"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="20dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="@font/alata"
             android:text="@string/home_page_title"
-            android:textSize="34sp"
-            android:textStyle="bold"
-            tools:layout_editor_absoluteX="35dp"
-            tools:layout_editor_absoluteY="54dp" />
-
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            android:textStyle="bold" />
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchlanguage"
-            android:layout_width="wrap_content"
+            android:layout_width="119dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:text="En "
+            android:text="@string/switch_language_en"
             android:textAlignment="textEnd"
             android:textColor="@color/black"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
             android:thumb="@drawable/rounded_globe_24"
             app:thumbTint="@color/grey"
@@ -49,15 +46,14 @@
 
     </LinearLayout>
 
-
+    <!-- GREETING: Welcome + UserName -->
     <LinearLayout
         android:id="@+id/greeting"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
         android:orientation="horizontal"
-        android:weightSum="2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/top">
 
@@ -67,156 +63,139 @@
             android:layout_height="wrap_content"
             android:text="@string/welcome_text"
             android:textColor="@color/green"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-        <EditText
+        <TextView
             android:id="@+id/name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
             android:background="@android:color/transparent"
             android:textColor="@color/grey"
-            android:textSize="20sp"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:textSize="16sp" />
 
     </LinearLayout>
 
-
-
-
+    <!-- SEARCH + FILTER BUTTON -->
     <LinearLayout
         android:id="@+id/searchandfilter"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginHorizontal="0dp"
+        android:layout_marginTop="8dp"
         android:orientation="horizontal"
-        android:weightSum="2"
-        app:layout_constraintTop_toBottomOf="@+id/greeting"
-        >
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@+id/greeting">
 
         <SearchView
-            android:layout_width="316dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
             android:id="@+id/search_bar"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
             android:hint="@string/search_bar_hint"
-            android:padding="5dp"
+            android:padding="6dp"
             android:background="@drawable/textview1"
-
-            />
+            android:iconifiedByDefault="false" />
 
         <androidx.constraintlayout.utils.widget.ImageFilterButton
             android:id="@+id/imageFilterButton"
-            android:layout_width="50dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
             android:background="@color/yellow"
             android:backgroundTint="@android:color/transparent"
-            android:scaleType="fitXY"
-            app:srcCompat="@drawable/outline_filter_list_24"
-            tools:layout_editor_absoluteX="358dp"
-            tools:layout_editor_absoluteY="182dp" />
+            android:scaleType="centerInside"
+            android:padding="6dp"
+            app:srcCompat="@drawable/outline_filter_list_24" />
 
     </LinearLayout>
 
-
+    <!-- COLLAPSIBLE FILTER PANEL (Initially Hidden) -->
     <LinearLayout
         android:id="@+id/filterdetails"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="0dp"
+        android:layout_marginTop="6dp"
         android:orientation="vertical"
         android:padding="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/offwhite"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/searchandfilter"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/searchandfilter">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:id="@+id/textView12"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/home_budget_title"
             android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            tools:layout_editor_absoluteX="24dp"
-            tools:layout_editor_absoluteY="248dp" />
-
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/textView13"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="7dp"
-            android:text="Ksh 10,000 - 50,000"
+            android:layout_marginBottom="6dp"
+            android:text="@string/home_budget_range_default"
             android:textColor="@color/green"
-            android:textSize="20sp"
-            tools:layout_editor_absoluteX="28dp"
-            tools:layout_editor_absoluteY="290dp" />
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <SeekBar
             android:id="@+id/seekBar2"
-            android:layout_width="390dp"
-            android:layout_height="33dp"
-            android:layout_marginBottom="15dp"
-            android:thumbTint="@color/green"
-            tools:layout_editor_absoluteX="25dp"
-            tools:layout_editor_absoluteY="316dp" />
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:layout_marginBottom="12dp"
+            android:thumbTint="@color/green" />
 
         <TextView
             android:id="@+id/textView14"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/home_amenities_title"
             android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            tools:layout_editor_absoluteX="31dp"
-            tools:layout_editor_absoluteY="359dp" />
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="4"
-            android:gravity="center"
-            android:orientation="horizontal">
-
+            android:orientation="horizontal"
+            android:gravity="start"
+            android:layout_marginBottom="12dp">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="10dp"
+                android:layout_marginEnd="6dp"
                 android:backgroundTint="@color/lightgrey"
-                android:padding="5dp"
                 android:text="@string/wifi"
-                android:textSize="16sp"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:textSize="12sp" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
                 android:backgroundTint="@color/lightgrey"
-                android:layout_marginRight="10dp"
                 android:text="@string/parking"
-                android:textSize="16sp"
-                 />
+                android:textSize="12sp" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
                 android:backgroundTint="@color/lightgrey"
                 android:text="@string/security"
-                android:layout_marginRight="10dp"
-                android:textSize="16sp"
-                 />
+                android:textSize="12sp" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip4"
@@ -224,9 +203,7 @@
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/lightgrey"
                 android:text="@string/borehole"
-                android:textSize="16sp"
-                 />
-
+                android:textSize="12sp" />
 
         </LinearLayout>
 
@@ -234,41 +211,35 @@
             android:id="@+id/textView15"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:text="@string/house_type"
-            android:layout_marginTop="10dp"
-            android:textSize="20sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:layout_editor_absoluteX="26dp" />
+            android:textColor="@color/black" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:layout_marginTop="15dp"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="start">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/studio"
+                android:layout_marginEnd="6dp"
                 android:backgroundTint="@color/lightgrey"
-                android:textSize="16sp"
-                android:layout_marginRight="10dp"
-                 />
+                android:text="@string/studio"
+                android:textSize="12sp" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/bedsitter"
+                android:layout_marginEnd="6dp"
                 android:backgroundTint="@color/lightgrey"
-                android:textSize="16sp"
-                android:layout_marginRight="10dp"
-               />
+                android:text="@string/bedsitter"
+                android:textSize="12sp" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip7"
@@ -276,80 +247,86 @@
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/lightgrey"
                 android:text="@string/onebed"
-                android:textSize="16sp"
-                android:layout_marginRight="10dp"
-         />
-
+                android:textSize="12sp" />
 
         </LinearLayout>
 
-
     </LinearLayout>
 
+    <!-- LIST/MAP VIEW TOGGLE BUTTONS -->
     <LinearLayout
         android:id="@+id/buttonslistandmap"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="2"
-        android:layout_marginTop="350dp"
+        android:layout_marginHorizontal="0dp"
+        android:layout_marginTop="6dp"
         android:gravity="center"
         android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@+id/searchandfilter"
-        tools:layout_editor_absoluteX="-1dp">
-
+        style="?android:attr/buttonBarStyle"
+        app:layout_constraintTop_toBottomOf="@+id/filterdetails">
 
         <Button
             android:id="@+id/button"
-            android:layout_width="180dp"
-            android:layout_height="wrap_content"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
             android:backgroundTint="@color/green"
             android:text="@string/list"
             android:textColor="@color/white"
-            android:textSize="20sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.587"
-            tools:layout_editor_absoluteX="24dp" />
+            android:textSize="14sp" />
 
         <Button
             android:id="@+id/button2"
-            android:layout_width="180dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="15dp"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
             android:backgroundTint="@color/lightgrey"
             android:text="@string/map"
             android:textColor="@color/black"
-            android:textSize="20sp"
-            tools:layout_editor_absoluteX="304dp"
-            tools:layout_editor_absoluteY="557dp" />
-
+            android:textSize="14sp" />
 
     </LinearLayout>
 
-    <EditText
+    <!-- RESULTS COUNT TEXT -->
+    <TextView
         android:id="@+id/editTextText2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginHorizontal="0dp"
+        android:layout_marginTop="6dp"
         android:background="@color/offwhite"
-        android:ems="10"
-        android:inputType="text"
-        android:paddingVertical="10dp"
-        android:paddingStart="20dp"
+        android:paddingVertical="8dp"
+        android:paddingHorizontal="10dp"
         android:text="@string/results"
+        android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonslistandmap" />
 
+    <!-- MAIN LISTINGS RECYCLERVIEW (Large, Prominent) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="6dp"
+        android:clipToPadding="false"
+        android:paddingBottom="12dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextText2" />
 
-
-
+    <!-- FRAGMENT CONTAINER FOR MAP VIEW -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="6dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextText2" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

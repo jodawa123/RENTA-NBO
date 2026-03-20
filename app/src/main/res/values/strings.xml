@@ -49,6 +49,7 @@
     <string name="welcome_text">Hello\,</string>
     <string name="search_bar_hint">Search by location,type</string>
     <string name="home_budget_title">Budget Range</string>
+    <string name="home_budget_range_default">KSh 10,000 - 50,000</string>
     <string name="home_amenities_title">Amenities</string>
     <string name="wifi">WiFi</string>
     <string name="parking">Parking</string>

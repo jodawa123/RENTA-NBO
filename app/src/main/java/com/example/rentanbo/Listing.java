@@ -1,6 +1,8 @@
 package com.example.rentanbo;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.PropertyName;
 import java.util.List;
 
 public class Listing {
@@ -14,7 +16,8 @@ public class Listing {
     private GeoPoint location;
     private String physicalAddress;
     private Landlord landlord;
-    private long createdAt;
+    // Store createdAt as Object to accept both Firestore Timestamps and numeric values
+    private Object createdAt;
 
     // Empty constructor for Firestore
     public Listing() {}
@@ -60,8 +63,48 @@ public class Listing {
     public Landlord getLandlord() { return landlord; }
     public void setLandlord(Landlord landlord) { this.landlord = landlord; }
 
-    public long getCreatedAt() { return createdAt; }
-    public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
+    /**
+     * Returns createdAt in milliseconds since epoch. Handles Firestore Timestamp and numeric types.
+     */
+    @PropertyName("createdAt")
+    public long getCreatedAt() {
+        if (createdAt == null) return 0L;
+
+        // If stored as Firestore Timestamp
+        if (createdAt instanceof Timestamp) {
+            try {
+                return ((Timestamp) createdAt).toDate().getTime();
+            } catch (Exception e) {
+                return 0L;
+            }
+        }
+
+        // If stored as Long, Integer, Double, etc.
+        if (createdAt instanceof Long) {
+            return (Long) createdAt;
+        }
+        if (createdAt instanceof Integer) {
+            return ((Integer) createdAt).longValue();
+        }
+        if (createdAt instanceof Double) {
+            return ((Double) createdAt).longValue();
+        }
+
+        // Fallback: attempt to parse string
+        try {
+            return Long.parseLong(createdAt.toString());
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
+    /**
+     * Setter used by Firestore mapping. Accepts Timestamp or numeric values.
+     */
+    @PropertyName("createdAt")
+    public void setCreatedAt(Object createdAt) {
+        this.createdAt = createdAt;
+    }
 
     // Inner Landlord class
     public static class Landlord {

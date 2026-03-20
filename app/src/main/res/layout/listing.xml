@@ -61,7 +61,7 @@
                     android:layout_height="wrap_content"
                     android:text="KSh"
                     android:textColor="#00A651"
-                    android:textSize="24sp"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -71,7 +71,7 @@
                     android:text=" 12,000"
                     android:textColor="#00A651"
                     android:textStyle="bold"
-                    android:textSize="24sp"/>
+                    android:textSize="18sp"/>
 
                 <TextView
                     android:id="@+id/txtPeriod"
@@ -80,7 +80,7 @@
                     android:layout_marginStart="4dp"
                     android:text=" /month"
                     android:textColor="@color/grey"
-                    android:textSize="16sp" />
+                    android:textSize="13sp" />
 
             </LinearLayout>
 
@@ -92,7 +92,7 @@
                 android:layout_marginTop="8dp"
                 android:text="Cozy Bed-sitter near KU"
                 android:textColor="@android:color/black"
-                android:textSize="24sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <!-- Location -->
@@ -103,7 +103,7 @@
                 android:layout_marginTop="4dp"
                 android:text="Kahawa"
                 android:textColor="@color/grey"
-                android:textSize="18sp" />
+                android:textSize="14sp" />
 
             <!-- Icons Row -->
             <LinearLayout
@@ -147,7 +147,7 @@
                 android:backgroundTint="@color/lightgrey"
                 android:text="View Details"
                 android:textColor="@android:color/black"
-                android:textSize="20sp"
+                android:textSize="14sp"
                 app:cornerRadius="24dp" />
 
         </LinearLayout>
