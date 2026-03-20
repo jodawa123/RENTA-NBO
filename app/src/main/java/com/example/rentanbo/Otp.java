@@ -5,6 +5,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.Button;
@@ -62,11 +64,33 @@ public class Otp extends BaseActivity {
     private FirebaseAuth mAuth;
     private DatabaseReference databaseReference;
 
+    // DB timeout handling
+    private Handler dbTimeoutHandler;
+    private Runnable dbTimeoutRunnable;
+    private boolean dbResponded = false;
+    private final long DB_TIMEOUT_MS = 8000; // 8 seconds
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         StatusBarUtil.setLightStatusBar(this);
         setContentView(R.layout.activity_otp);
+
+        dbTimeoutHandler = new Handler(Looper.getMainLooper());
+        dbTimeoutRunnable = () -> {
+            if (!dbResponded) {
+                android.util.Log.e("Otp", "checkIfUserExists() -> timeout waiting for DB response");
+                showToast("Network timeout - please check your connection and try again.");
+                // Reset button state so user can retry
+                continueButton.setEnabled(true);
+                continueButton.setText(R.string.continue_button);
+                isVerifying = false;
+                // As a fallback, direct user to Filters so they can continue
+                Intent intent = new Intent(Otp.this, Filters.class);
+                startActivity(intent);
+                finish();
+            }
+        };
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -231,6 +255,9 @@ public class Otp extends BaseActivity {
 
         String message = "Your RentaNBO verification code is: " + generatedOTP;
 
+        // DEBUG: Log generated OTP and target phone number
+        android.util.Log.d("Otp", "sendOtpViaSms() -> phone: " + phoneNumber + " otp: " + generatedOTP);
+
         try {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(phoneNumber, null, message, null, null);
@@ -350,6 +377,9 @@ public class Otp extends BaseActivity {
             return;
         }
 
+        // DEBUG: log entered and generated OTPs to help diagnose mismatches
+        android.util.Log.d("Otp", "verifyOtp() -> entered: " + enteredOtp + " generated: " + generatedOTP);
+
         // Set verifying flag to prevent multiple clicks
         isVerifying = true;
 
@@ -369,6 +399,9 @@ public class Otp extends BaseActivity {
 
             // Get phone number
             String phoneNumber = SharedData.getCurrentPhoneNumber();
+
+            // DEBUG: log phone number being checked
+            android.util.Log.d("Otp", "OTP verified for phone: " + phoneNumber);
 
             // Check if user exists in database
             checkIfUserExists(phoneNumber);
@@ -397,29 +430,60 @@ public class Otp extends BaseActivity {
         // Clean phone number for database key
         String cleanPhone = phoneNumber.replace("+", "");
 
+        // DEBUG: Log the key being used to query the database
+        android.util.Log.d("Otp", "checkIfUserExists() -> querying users/" + cleanPhone);
+
+        // Ensure we're authenticated (anonymous) before querying the database
+        if (mAuth.getCurrentUser() == null) {
+            android.util.Log.d("Otp", "Not authenticated - signing in anonymously before DB read");
+            mAuth.signInAnonymously().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    android.util.Log.d("Otp", "Anonymous sign-in successful, proceeding with DB lookup");
+                    performUserExistsCheck(cleanPhone, phoneNumber);
+                } else {
+                    android.util.Log.e("Otp", "Anonymous sign-in failed: " + (task.getException() != null ? task.getException().getMessage() : "unknown"));
+                    showToast("Auth failed: " + (task.getException() != null ? task.getException().getMessage() : "unknown"));
+                    // Reset UI state
+                    continueButton.setEnabled(true);
+                    continueButton.setText(R.string.continue_button);
+                    isVerifying = false;
+                }
+            });
+        } else {
+            performUserExistsCheck(cleanPhone, phoneNumber);
+        }
+    }
+
+    private void performUserExistsCheck(String cleanPhone, String phoneNumber) {
+        // Setup timeout guard
+        dbResponded = false;
+        dbTimeoutHandler.removeCallbacks(dbTimeoutRunnable);
+        dbTimeoutHandler.postDelayed(dbTimeoutRunnable, DB_TIMEOUT_MS);
+
         databaseReference.child("users").child(cleanPhone)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            // RETURNING USER - profile exists
+                        // Cancel timeout
+                        dbResponded = true;
+                        dbTimeoutHandler.removeCallbacks(dbTimeoutRunnable);
+
+                        boolean exists = snapshot.exists();
+                        android.util.Log.d("Otp", "performUserExistsCheck onDataChange: exists=" + exists);
+
+                        if (exists) {
                             showToast(R.string.welcome_back_toast);
-
-                            // Get existing user data
                             String name = snapshot.child("name").getValue(String.class);
-
                             Intent intent = new Intent(Otp.this, HomePage.class);
                             intent.putExtra("isReturningUser", true);
                             intent.putExtra("phoneNumber", phoneNumber);
                             intent.putExtra("name", name);
+                            android.util.Log.d("Otp", "Navigating to HomePage for returning user: " + name);
                             startActivity(intent);
                             finish();
-
                         } else {
-                            // NEW USER - needs to complete profile
                             showToast(R.string.please_complete_profile);
-
-                            // Go to Filters page
+                            android.util.Log.d("Otp", "User not found - directing to Filters");
                             Intent intent = new Intent(Otp.this, Filters.class);
                             startActivity(intent);
                             finish();
@@ -428,14 +492,14 @@ public class Otp extends BaseActivity {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        // Reset button state
+                        // Cancel timeout
+                        dbResponded = true;
+                        dbTimeoutHandler.removeCallbacks(dbTimeoutRunnable);
                         continueButton.setEnabled(true);
                         continueButton.setText(R.string.continue_button);
                         isVerifying = false;
-
+                        android.util.Log.e("Otp", "performUserExistsCheck cancelled: " + error.getMessage());
                         showToast("Database error: " + error.getMessage());
-
-                        // On error, still go to Filters as fallback
                         startActivity(new Intent(Otp.this, Filters.class));
                         finish();
                     }
