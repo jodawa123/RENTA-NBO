@@ -1,6 +1,11 @@
 package com.example.rentanbo;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,51 +13,82 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-/**
- * MapFragment displays listings on a Google Map.
- * Shows markers for each property with pricing and location information.
- */
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
-    private GoogleMap googleMap;
-    private List<Listing> listings;
-    private FilterState filterState;
-
-    // Default location (Nairobi, Kenya center)
-    private static final LatLng NAIROBI_CENTER = new LatLng(-1.2866, 36.8172);
+    private static final String TAG = "MapFragment";
     private static final float DEFAULT_ZOOM = 12f;
 
-    public MapFragment() {
-        // Required empty public constructor
+    private GoogleMap mMap;
+    private FirebaseFirestore db;
+    private FusedLocationProviderClient fusedLocationClient;
+    private LatLng userLocation;
+    private List<LocationData> allLocations = new ArrayList<>();
+    private String currentNeighborhood = "";
+    private boolean markersAdded = false;
+
+    public interface OnListingSelectedListener {
+        void onListingSelected(String listingId, String title);
+    }
+
+    private OnListingSelectedListener listener;
+
+    private static class LocationData {
+        String id;
+        String title;
+        String neighborhood;
+        GeoPoint location;
+
+        LocationData(String id, String title, String neighborhood, GeoPoint location) {
+            this.id = id;
+            this.title = title;
+            this.neighborhood = neighborhood;
+            this.location = location;
+        }
+    }
+
+    @Override
+    public void onAttach(@NonNull android.content.Context context) {
+        super.onAttach(context);
+        if (context instanceof OnListingSelectedListener) {
+            listener = (OnListingSelectedListener) context;
+        }
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
     }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                           @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_map, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        db = FirebaseFirestore.getInstance();
 
-        // Initialize FilterState for filtering listings
-        filterState = FilterState.getInstance();
-
-        // Get map fragment and initialize map
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map);
         if (mapFragment != null) {
@@ -61,132 +97,162 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     @Override
-    public void onMapReady(@NonNull GoogleMap map) {
-        googleMap = map;
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        mMap = googleMap;
 
-        // Set default camera to Nairobi
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(NAIROBI_CENTER, DEFAULT_ZOOM));
+        // Enable zoom controls
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
-        // Load and display listings
-        loadListingsOnMap();
-
-        // Set up marker click listener
-        googleMap.setOnMarkerClickListener(marker -> {
-            // Show listing details on marker click
-            String title = marker.getTitle();
-            String snippet = marker.getSnippet();
-            Toast.makeText(requireContext(), title + "\n" + snippet, Toast.LENGTH_SHORT).show();
-            return true;
+        // Set info window click listener
+        mMap.setOnInfoWindowClickListener(marker -> {
+            LocationData data = (LocationData) marker.getTag();
+            if (data != null && listener != null) {
+                listener.onListingSelected(data.id, data.title);
+                openGoogleMapsDirections(data.location);
+            }
         });
+
+        // Center on Nairobi initially
+        LatLng nairobi = new LatLng(-1.286389, 36.817223);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nairobi, DEFAULT_ZOOM));
+
+        // Get user location
+        getUserLocation();
+
+        // Load locations from Firestore
+        loadLocations();
     }
 
-    /**
-     * Load listings from Firestore and display them as markers on the map
-     */
-    private void loadListingsOnMap() {
-        FirestoreManager firestoreManager = FirestoreManager.getInstance();
+    private void getUserLocation() {
+        if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
 
-        firestoreManager.getFilteredListings(filterState, new FirestoreManager.ListingsCallback() {
-            @Override
-            public void onSuccess(List<Listing> loadedListings) {
-                listings = loadedListings;
-                if (listings != null && !listings.isEmpty()) {
-                    displayListingsOnMap(listings);
-                } else {
-                    Toast.makeText(requireContext(), "No listings found", Toast.LENGTH_SHORT).show();
+            Task<Location> locationTask = fusedLocationClient.getLastLocation();
+            locationTask.addOnSuccessListener(location -> {
+                if (location != null && mMap != null) {
+                    userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+                    mMap.addMarker(new MarkerOptions()
+                            .position(userLocation)
+                            .title("You are here")
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, DEFAULT_ZOOM));
+                }
+            });
+        }
+    }
+
+    private void loadLocations() {
+        db.collection("listings")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        allLocations.clear();
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            GeoPoint location = document.getGeoPoint("location");
+                            String title = document.getString("title");
+                            String neighborhood = document.getString("neighborhood");
+
+                            if (location != null && title != null) {
+                                allLocations.add(new LocationData(
+                                        document.getId(),
+                                        title,
+                                        neighborhood != null ? neighborhood : "",
+                                        location
+                                ));
+                            }
+                        }
+
+                        // Display markers on map
+                        displayMarkers();
+
+                    } else {
+                        Toast.makeText(getContext(), "Failed to load listings", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void displayMarkers() {
+        if (mMap == null) return;
+
+        // Clear all markers
+        mMap.clear();
+
+        // Re-add user location marker if exists
+        if (userLocation != null) {
+            mMap.addMarker(new MarkerOptions()
+                    .position(userLocation)
+                    .title("You are here")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+        }
+
+        // Filter and add markers
+        int markerCount = 0;
+        LatLng firstLocation = null;
+
+        for (LocationData data : allLocations) {
+            // Apply neighborhood filter
+            if (!currentNeighborhood.isEmpty() && !currentNeighborhood.equalsIgnoreCase(data.neighborhood)) {
+                continue;
+            }
+
+            LatLng latLng = new LatLng(data.location.getLatitude(), data.location.getLongitude());
+
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .title(data.title)
+                    .snippet("Tap for directions")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
+            if (marker != null) {
+                marker.setTag(data);
+                markerCount++;
+                if (firstLocation == null) {
+                    firstLocation = latLng;
                 }
             }
+        }
 
-            @Override
-            public void onFailure(String error) {
-                Toast.makeText(requireContext(), "Failed to load listings: " + error, Toast.LENGTH_SHORT).show();
+        // Center on first location if no user location
+        if (userLocation == null && firstLocation != null) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, DEFAULT_ZOOM));
+        }
+
+        // Show toast message
+        if (markerCount > 0) {
+            Toast.makeText(getContext(), markerCount + " listings shown", Toast.LENGTH_SHORT).show();
+        } else if (!allLocations.isEmpty()) {
+            Toast.makeText(getContext(), "No listings in " + currentNeighborhood, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void filterByNeighborhood(String neighborhood) {
+        this.currentNeighborhood = neighborhood;
+        displayMarkers();
+    }
+
+    public void resetToAllListings() {
+        this.currentNeighborhood = "";
+        displayMarkers();
+    }
+
+    private void openGoogleMapsDirections(GeoPoint destination) {
+        if (userLocation != null && destination != null) {
+            LatLng dest = new LatLng(destination.getLatitude(), destination.getLongitude());
+
+            String uri = String.format(Locale.ENGLISH,
+                    "https://www.google.com/maps/dir/?api=1&origin=%f,%f&destination=%f,%f&travelmode=driving",
+                    userLocation.latitude, userLocation.longitude, dest.latitude, dest.longitude);
+
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            intent.setPackage("com.google.android.apps.maps");
+
+            if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                startActivity(intent);
             }
-        });
-    }
-
-    /**
-     * Display all listings as markers on the map
-     */
-    private void displayListingsOnMap(List<Listing> listingsToDisplay) {
-        if (googleMap == null || listingsToDisplay.isEmpty()) {
-            return;
-        }
-
-        // Clear existing markers
-        googleMap.clear();
-
-        for (Listing listing : listingsToDisplay) {
-            // Use location from listing if available, otherwise use a default area
-            LatLng position;
-            if (listing.getLocation() != null) {
-                position = new LatLng(
-                        listing.getLocation().getLatitude(),
-                        listing.getLocation().getLongitude()
-                );
-            } else {
-                // Default to Nairobi center + slight random offset based on neighborhood
-                position = getLocationForNeighborhood(listing.getNeighborhood());
-            }
-
-            // Create marker for listing
-            MarkerOptions markerOptions = new MarkerOptions()
-                    .position(position)
-                    .title(listing.getTitle())
-                    .snippet("KSh " + listing.getPrice() + "/month | " + listing.getNeighborhood())
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
-
-            // Add marker to map
-            googleMap.addMarker(markerOptions);
-        }
-
-        // Optionally animate camera to first listing
-        if (!listingsToDisplay.isEmpty() && listingsToDisplay.get(0).getLocation() != null) {
-            LatLng firstLocation = new LatLng(
-                    listingsToDisplay.get(0).getLocation().getLatitude(),
-                    listingsToDisplay.get(0).getLocation().getLongitude()
-            );
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, DEFAULT_ZOOM));
-        }
-    }
-
-    /**
-     * Get approximate coordinates for Nairobi neighborhoods
-     * In production, store actual GPS coordinates in Firestore
-     */
-    private LatLng getLocationForNeighborhood(String neighborhood) {
-        if (neighborhood == null) {
-            return NAIROBI_CENTER;
-        }
-
-        // Sample coordinates for common Nairobi neighborhoods
-        switch (neighborhood.toLowerCase()) {
-            case "rongai":
-                return new LatLng(-1.3521, 36.8090);
-            case "kahawa":
-                return new LatLng(-1.2400, 36.9100);
-            case "langata":
-                return new LatLng(-1.3667, 36.7667);
-            case "westlands":
-                return new LatLng(-1.2667, 36.8000);
-            case "karen":
-                return new LatLng(-1.3833, 36.6833);
-            case "kilimani":
-                return new LatLng(-1.3000, 36.7667);
-            default:
-                // Random offset from center for unknown neighborhoods
-                double lat = NAIROBI_CENTER.latitude + (Math.random() - 0.5) * 0.1;
-                double lng = NAIROBI_CENTER.longitude + (Math.random() - 0.5) * 0.1;
-                return new LatLng(lat, lng);
-        }
-    }
-
-    /**
-     * Refresh map with new listings (call when filters change)
-     */
-    public void refreshMap() {
-        if (googleMap != null) {
-            loadListingsOnMap();
         }
     }
 }
-
