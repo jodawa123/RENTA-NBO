@@ -22,7 +22,7 @@
 
         <TextView
             android:id="@+id/textView6"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="@font/alata"
@@ -33,7 +33,7 @@
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchlanguage"
-            android:layout_width="119dp"
+            android:layout_width="178dp"
             android:layout_height="wrap_content"
             android:text="@string/switch_language_en"
             android:textAlignment="textEnd"
