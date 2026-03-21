@@ -13,7 +13,7 @@
         android:id="@+id/top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="20dp"
         android:layout_marginHorizontal="16dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
@@ -22,9 +22,8 @@
 
         <TextView
             android:id="@+id/textView6"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:fontFamily="@font/alata"
             android:text="@string/home_page_title"
             android:textColor="@color/black"
@@ -33,7 +32,7 @@
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchlanguage"
-            android:layout_width="119dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/switch_language_en"
             android:textAlignment="textEnd"
@@ -63,7 +62,7 @@
             android:layout_height="wrap_content"
             android:text="@string/welcome_text"
             android:textColor="@color/green"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <TextView
@@ -91,10 +90,10 @@
         <SearchView
             android:id="@+id/search_bar"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="50dp"
             android:layout_weight="1"
             android:hint="@string/search_bar_hint"
-            android:padding="6dp"
+            android:paddingVertical="6dp"
             android:background="@drawable/textview1"
             android:iconifiedByDefault="false" />
 
@@ -103,7 +102,6 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="8dp"
-            android:background="@color/yellow"
             android:backgroundTint="@android:color/transparent"
             android:scaleType="centerInside"
             android:padding="6dp"
@@ -318,15 +316,62 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextText2" />
 
-    <!-- FRAGMENT CONTAINER FOR MAP VIEW -->
+    <LinearLayout
+        android:id="@+id/mapbuttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="16dp"
+        android:visibility="gone"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@+id/editTextText2"
+        android:weightSum="3">
+
+        <Button
+            android:id="@+id/langatab"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:backgroundTint="@color/grey"
+            android:text="@string/langata"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+        <Button
+            android:id="@+id/rongaib"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:backgroundTint="@color/grey"
+            android:text="@string/rongai"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+        <Button
+            android:id="@+id/kahawab"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:backgroundTint="@color/grey"
+            android:text="@string/kahawa"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+
     <FrameLayout
-        android:id="@+id/fragment_container"
+        android:id="@+id/map_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="6dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextText2" />
+        app:layout_constraintTop_toBottomOf="@+id/mapbuttons" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -45,7 +45,7 @@
 
     <!-- HomePage -->
 
-    <string name="home_page_title">Find Your Home</string>
+    <string name="home_page_title">Find Your Home Today</string>
     <string name="welcome_text">Hello\,</string>
     <string name="search_bar_hint">Search by location,type</string>
     <string name="home_budget_title">Budget Range</string>
