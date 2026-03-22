@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -27,10 +26,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,32 +37,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private static final float DEFAULT_ZOOM = 12f;
 
     private GoogleMap mMap;
-    private FirebaseFirestore db;
     private FusedLocationProviderClient fusedLocationClient;
     private LatLng userLocation;
-    private List<LocationData> allLocations = new ArrayList<>();
+
+    // Listings passed in from HomePage — no separate Firestore query needed
+    private List<Listing> listings = new ArrayList<>();
     private String currentNeighborhood = "";
-    private boolean markersAdded = false;
 
     public interface OnListingSelectedListener {
         void onListingSelected(String listingId, String title);
     }
 
     private OnListingSelectedListener listener;
-
-    private static class LocationData {
-        String id;
-        String title;
-        String neighborhood;
-        GeoPoint location;
-
-        LocationData(String id, String title, String neighborhood, GeoPoint location) {
-            this.id = id;
-            this.title = title;
-            this.neighborhood = neighborhood;
-            this.location = location;
-        }
-    }
 
     @Override
     public void onAttach(@NonNull android.content.Context context) {
@@ -80,17 +61,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_map, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        db = FirebaseFirestore.getInstance();
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment)
+                getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
@@ -99,160 +81,169 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
-
-        // Enable zoom controls
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
-        // Set info window click listener
+        // Info window click → notify host activity + open directions
         mMap.setOnInfoWindowClickListener(marker -> {
-            LocationData data = (LocationData) marker.getTag();
-            if (data != null && listener != null) {
-                listener.onListingSelected(data.id, data.title);
-                openGoogleMapsDirections(data.location);
+            if (marker.getTag() instanceof Listing) {
+                Listing listing = (Listing) marker.getTag();
+                if (listener != null) {
+                    listener.onListingSelected(listing.getId(), listing.getTitle());
+                }
+                if (listing.getLocation() != null) {
+                    openGoogleMapsDirections(listing.getLatitude(), listing.getLongitude());
+                }
             }
         });
 
-        // Center on Nairobi initially
+        // Default camera position: central Nairobi
         LatLng nairobi = new LatLng(-1.286389, 36.817223);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nairobi, DEFAULT_ZOOM));
 
-        // Get user location
         getUserLocation();
 
-        // Load locations from Firestore
-        loadLocations();
+        // Render whatever listings have already been passed in
+        displayMarkers();
     }
 
-    private void getUserLocation() {
-        if (ContextCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-
-            Task<Location> locationTask = fusedLocationClient.getLastLocation();
-            locationTask.addOnSuccessListener(location -> {
-                if (location != null && mMap != null) {
-                    userLocation = new LatLng(location.getLatitude(), location.getLongitude());
-
-                    mMap.addMarker(new MarkerOptions()
-                            .position(userLocation)
-                            .title("You are here")
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
-
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, DEFAULT_ZOOM));
-                }
-            });
-        }
-    }
-
-    private void loadLocations() {
-        db.collection("listings")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        allLocations.clear();
-
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            GeoPoint location = document.getGeoPoint("location");
-                            String title = document.getString("title");
-                            String neighborhood = document.getString("neighborhood");
-
-                            if (location != null && title != null) {
-                                allLocations.add(new LocationData(
-                                        document.getId(),
-                                        title,
-                                        neighborhood != null ? neighborhood : "",
-                                        location
-                                ));
-                            }
-                        }
-
-                        // Display markers on map
-                        displayMarkers();
-
-                    } else {
-                        Toast.makeText(getContext(), "Failed to load listings", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-    private void displayMarkers() {
-        if (mMap == null) return;
-
-        // Clear all markers
-        mMap.clear();
-
-        // Re-add user location marker if exists
-        if (userLocation != null) {
-            mMap.addMarker(new MarkerOptions()
-                    .position(userLocation)
-                    .title("You are here")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
-        }
-
-        // Filter and add markers
-        int markerCount = 0;
-        LatLng firstLocation = null;
-
-        for (LocationData data : allLocations) {
-            // Apply neighborhood filter
-            if (!currentNeighborhood.isEmpty() && !currentNeighborhood.equalsIgnoreCase(data.neighborhood)) {
-                continue;
-            }
-
-            LatLng latLng = new LatLng(data.location.getLatitude(), data.location.getLongitude());
-
-            Marker marker = mMap.addMarker(new MarkerOptions()
-                    .position(latLng)
-                    .title(data.title)
-                    .snippet("Tap for directions")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-
-            if (marker != null) {
-                marker.setTag(data);
-                markerCount++;
-                if (firstLocation == null) {
-                    firstLocation = latLng;
-                }
-            }
-        }
-
-        // Center on first location if no user location
-        if (userLocation == null && firstLocation != null) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, DEFAULT_ZOOM));
-        }
-
-        // Show toast message
-        if (markerCount > 0) {
-            Toast.makeText(getContext(), markerCount + " listings shown", Toast.LENGTH_SHORT).show();
-        } else if (!allLocations.isEmpty()) {
-            Toast.makeText(getContext(), "No listings in " + currentNeighborhood, Toast.LENGTH_SHORT).show();
+    // -----------------------------------------------------------------------
+    // Called by HomePage after it loads or filters listings
+    // -----------------------------------------------------------------------
+    public void setListings(List<Listing> listings) {
+        this.listings = listings != null ? listings : new ArrayList<>();
+        Log.d(TAG, "setListings() called with " + this.listings.size() + " listings");
+        if (mMap != null) {
+            displayMarkers();
         }
     }
 
     public void filterByNeighborhood(String neighborhood) {
-        this.currentNeighborhood = neighborhood;
-        displayMarkers();
+        this.currentNeighborhood = neighborhood != null ? neighborhood : "";
+        if (mMap != null) displayMarkers();
     }
 
     public void resetToAllListings() {
         this.currentNeighborhood = "";
-        displayMarkers();
+        if (mMap != null) displayMarkers();
     }
 
-    private void openGoogleMapsDirections(GeoPoint destination) {
-        if (userLocation != null && destination != null) {
-            LatLng dest = new LatLng(destination.getLatitude(), destination.getLongitude());
+    // -----------------------------------------------------------------------
+    // Draw markers from the in-memory listings list
+    // -----------------------------------------------------------------------
+    private void displayMarkers() {
+        if (mMap == null) {
+            Log.w(TAG, "displayMarkers() called but mMap is null — skipping");
+            return;
+        }
 
-            String uri = String.format(Locale.ENGLISH,
-                    "https://www.google.com/maps/dir/?api=1&origin=%f,%f&destination=%f,%f&travelmode=driving",
-                    userLocation.latitude, userLocation.longitude, dest.latitude, dest.longitude);
+        mMap.clear();
 
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-            intent.setPackage("com.google.android.apps.maps");
+        // Re-add "You are here" marker
+        if (userLocation != null) {
+            mMap.addMarker(new MarkerOptions()
+                    .position(userLocation)
+                    .title("You are here")
+                    .icon(BitmapDescriptorFactory.defaultMarker(
+                            BitmapDescriptorFactory.HUE_YELLOW)));
+        }
 
-            if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
-                startActivity(intent);
+        int markerCount = 0;
+        LatLng firstLocation = null;
+
+        for (Listing listing : listings) {
+            // Must have a valid GeoPoint
+            if (listing.getLocation() == null) {
+                Log.w(TAG, "Skipping listing '" + listing.getTitle()
+                        + "' — location is null");
+                continue;
             }
+
+            // Apply neighbourhood filter
+            if (!currentNeighborhood.isEmpty()
+                    && !currentNeighborhood.equalsIgnoreCase(listing.getNeighborhood())) {
+                continue;
+            }
+
+            LatLng latLng = new LatLng(listing.getLatitude(), listing.getLongitude());
+
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .title(listing.getTitle())
+                    .snippet("KSh " + listing.getFormattedPrice()
+                            + "  •  " + listing.getNeighborhood()
+                            + "\nTap for directions")
+                    .icon(BitmapDescriptorFactory.defaultMarker(
+                            BitmapDescriptorFactory.HUE_GREEN)));
+
+            if (marker != null) {
+                marker.setTag(listing);   // store the whole Listing for click handling
+                markerCount++;
+                if (firstLocation == null) firstLocation = latLng;
+            }
+        }
+
+        Log.d(TAG, "displayMarkers() added " + markerCount + " markers");
+
+        // Centre map
+        if (userLocation == null && firstLocation != null) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, DEFAULT_ZOOM));
+        }
+
+        // Only show toast if fragment is still attached
+        if (!isAdded()) return;
+
+        if (markerCount > 0) {
+            Toast.makeText(requireContext(),
+                    markerCount + " listings shown", Toast.LENGTH_SHORT).show();
+        } else if (!listings.isEmpty()) {
+            String area = currentNeighborhood.isEmpty() ? "this area" : currentNeighborhood;
+            Toast.makeText(requireContext(),
+                    "No listings found in " + area, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // User location
+    // -----------------------------------------------------------------------
+    private void getUserLocation() {
+        if (!isAdded()) return;
+        if (ContextCompat.checkSelfPermission(requireContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) return;
+
+        fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+            if (location != null && mMap != null && isAdded()) {
+                userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                mMap.addMarker(new MarkerOptions()
+                        .position(userLocation)
+                        .title("You are here")
+                        .icon(BitmapDescriptorFactory.defaultMarker(
+                                BitmapDescriptorFactory.HUE_YELLOW)));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, DEFAULT_ZOOM));
+            }
+        });
+    }
+
+    // -----------------------------------------------------------------------
+    // Open Google Maps directions
+    // -----------------------------------------------------------------------
+    private void openGoogleMapsDirections(double destLat, double destLng) {
+        if (!isAdded()) return;
+        String uri;
+        if (userLocation != null) {
+            uri = String.format(Locale.ENGLISH,
+                    "https://www.google.com/maps/dir/?api=1&origin=%f,%f&destination=%f,%f&travelmode=driving",
+                    userLocation.latitude, userLocation.longitude, destLat, destLng);
+        } else {
+            uri = String.format(Locale.ENGLISH,
+                    "https://www.google.com/maps/dir/?api=1&destination=%f,%f&travelmode=driving",
+                    destLat, destLng);
+        }
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+        intent.setPackage("com.google.android.apps.maps");
+        if (intent.resolveActivity(requireActivity().getPackageManager()) != null) {
+            startActivity(intent);
         }
     }
 }
