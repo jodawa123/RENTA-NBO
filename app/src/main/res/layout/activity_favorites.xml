@@ -14,7 +14,7 @@
         android:background="@android:color/transparent"
         android:contentDescription="@string/details_back"
         android:padding="8dp"
-        android:src="@drawable/outline_arrow_back_24"
+        android:src="@drawable/outline_arrow_left_24"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="@color/black" />
@@ -115,4 +115,5 @@
         app:layout_constraintTop_toBottomOf="@id/txtOfflineBanner" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
 

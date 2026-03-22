@@ -7,6 +7,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -28,6 +29,7 @@ public class FirestoreManager {
     private static final String COLLECTION_LISTINGS = "listings";
     private static final String COLLECTION_FAVORITES = "favorites";
     private static final String COLLECTION_TOUR_REQUESTS = "tourRequests";
+    private static final String COLLECTION_SAVED_SEARCHES = "savedSearches";
 
     private FirestoreManager() {
         db = FirebaseFirestore.getInstance();
@@ -52,6 +54,11 @@ public class FirestoreManager {
 
     public interface FavoriteStatusCallback {
         void onResult(boolean isFavorite);
+        void onFailure(String error);
+    }
+
+    public interface FavoriteIdsCallback {
+        void onSuccess(List<String> listingIds);
         void onFailure(String error);
     }
 
@@ -408,6 +415,114 @@ public class FirestoreManager {
                 .addOnSuccessListener(unused -> callback.onSuccess())
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error updating favorite", e);
+                    callback.onFailure(e.getMessage());
+                });
+    }
+
+    public void getFavoriteListingIds(String userId, FavoriteIdsCallback callback) {
+        if (callback == null) {
+            return;
+        }
+
+        if (userId == null || userId.trim().isEmpty()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+
+        db.collection(COLLECTION_FAVORITES)
+                .document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    List<String> listingIds = (List<String>) documentSnapshot.get("listingIds");
+                    callback.onSuccess(listingIds != null ? listingIds : new ArrayList<>());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting favorite listing IDs", e);
+                    callback.onFailure(e.getMessage());
+                });
+    }
+
+    public void getListingsByIds(List<String> listingIds, ListingsCallback callback) {
+        if (callback == null) {
+            return;
+        }
+
+        if (listingIds == null || listingIds.isEmpty()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+
+        List<String> sanitizedIds = new ArrayList<>();
+        for (String id : listingIds) {
+            if (id != null && !id.trim().isEmpty()) {
+                sanitizedIds.add(id.trim());
+            }
+        }
+
+        if (sanitizedIds.isEmpty()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+
+        db.collection(COLLECTION_LISTINGS)
+                .whereIn(FieldPath.documentId(), sanitizedIds)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    Map<String, Listing> listingMap = new HashMap<>();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Listing listing = mapListingDocument(document);
+                        if (listing != null) {
+                            listingMap.put(listing.getId(), listing);
+                        }
+                    }
+
+                    List<Listing> ordered = new ArrayList<>();
+                    for (String id : sanitizedIds) {
+                        Listing listing = listingMap.get(id);
+                        if (listing != null) {
+                            ordered.add(listing);
+                        }
+                    }
+                    callback.onSuccess(ordered);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting listings by ids", e);
+                    callback.onFailure(e.getMessage());
+                });
+    }
+
+    public void saveSearchCriteria(String userId, FilterState filterState, SimpleCallback callback) {
+        if (callback == null) {
+            return;
+        }
+
+        if (userId == null || userId.trim().isEmpty()) {
+            callback.onFailure("Missing user id");
+            return;
+        }
+
+        if (filterState == null) {
+            callback.onFailure("Missing filter state");
+            return;
+        }
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("userId", userId);
+        payload.put("neighborhood", filterState.getNeighborhood());
+        payload.put("budgetMin", filterState.getMinPrice());
+        payload.put("budgetMax", filterState.getMaxPrice());
+        payload.put("amenities", new ArrayList<>(filterState.getSelectedAmenities()));
+        payload.put("houseTypes", new ArrayList<>(filterState.getSelectedHouseTypes()));
+        payload.put("searchQuery", filterState.getSearchQuery());
+        payload.put("createdAt", FieldValue.serverTimestamp());
+
+        db.collection(COLLECTION_SAVED_SEARCHES)
+                .document(userId)
+                .collection("items")
+                .add(payload)
+                .addOnSuccessListener(documentReference -> callback.onSuccess())
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error saving search criteria", e);
                     callback.onFailure(e.getMessage());
                 });
     }

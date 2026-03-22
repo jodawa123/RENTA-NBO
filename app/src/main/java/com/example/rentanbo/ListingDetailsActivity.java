@@ -280,6 +280,12 @@ public class ListingDetailsActivity extends BaseActivity implements OnMapReadyCa
                 runOnUiThread(() -> {
                     favoriteButton.setEnabled(true);
                     setFavoriteUiState(nextState);
+                    FavoritesCacheRepository cacheRepository = FavoritesCacheRepository.getInstance(ListingDetailsActivity.this);
+                    if (nextState) {
+                        cacheRepository.upsertFavorite(currentListing);
+                    } else {
+                        cacheRepository.removeFavorite(currentListing.getId());
+                    }
                     showToast(nextState
                             ? getString(R.string.details_saved_favorite)
                             : getString(R.string.details_removed_favorite));

@@ -137,6 +137,30 @@
     <string name="details_listing_image">Listing image</string>
     <string name="details_similar_listing_image">Similar listing image</string>
 
+    <!-- Favorites + Offline + Saved Search -->
+    <string name="favorites_title">My Favorites</string>
+    <string name="favorites_empty_title">No favorites yet</string>
+    <string name="favorites_empty_subtitle">Tap the heart on any listing to save it here.</string>
+    <string name="favorites_remove_title">Remove Favorite</string>
+    <string name="favorites_remove_message">Remove %1$s from your favorites?</string>
+    <string name="favorites_remove_confirm">Remove</string>
+    <string name="favorites_remove_failed">Could not remove favorite right now.</string>
+    <string name="favorites_item_title_fallback">this listing</string>
+    <string name="offline_banner_text">You are offline. Showing cached favorites.</string>
+
+    <string name="save_this_search">Save This Search</string>
+    <string name="saved_search_success">Search saved. We will use this for future SMS alerts.</string>
+    <string name="saved_search_error">Could not save search right now.</string>
+    <string name="saved_search_missing_user">Please complete your profile before saving searches.</string>
+
+    <string name="quick_tips_title">Quick tips</string>
+    <string name="quick_tips_message">Use Filters to narrow listings, tap the heart to save favorites, and use Save This Search to get future alert options.</string>
+    <string name="tip_filter_button">Open filters</string>
+    <string name="tip_open_favorites">Open your favorites</string>
+    <string name="tip_save_search">Save this search for future alerts</string>
+    <string name="tip_back">Go back</string>
+    <string name="tip_swipe_remove_favorite">Swipe a card left or right to remove it</string>
+
     <string-array name="virtual_tour_slots">
         <item>Today (2:00 PM - 4:00 PM)</item>
         <item>Tomorrow (10:00 AM - 12:00 PM)</item>
