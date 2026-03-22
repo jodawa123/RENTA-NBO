@@ -12,6 +12,7 @@ public class Listing {
     private int price;
     private String neighborhood;
     private String houseType;
+    private String description;
     private List<String> amenities;
     private List<String> images;
     private GeoPoint location;
@@ -48,6 +49,9 @@ public class Listing {
 
     public String getHouseType() { return houseType != null ? houseType : ""; }
     public void setHouseType(String houseType) { this.houseType = houseType; }
+
+    public String getDescription() { return description != null ? description : ""; }
+    public void setDescription(String description) { this.description = description; }
 
     public List<String> getAmenities() {
         return amenities != null ? amenities : new ArrayList<>();

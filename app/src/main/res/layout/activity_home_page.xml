@@ -100,13 +100,14 @@
 
         <androidx.constraintlayout.utils.widget.ImageFilterButton
             android:id="@+id/imageFilterButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginStart="8dp"
             android:background="@color/yellow"
             android:backgroundTint="@android:color/transparent"
+            android:contentDescription="@string/filter_button_content_description"
             android:scaleType="centerInside"
-            android:padding="6dp"
+            android:padding="10dp"
             app:srcCompat="@drawable/outline_filter_list_24" />
 
     </LinearLayout>
