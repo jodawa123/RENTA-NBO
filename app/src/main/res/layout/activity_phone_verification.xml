@@ -168,8 +168,8 @@
 
     <Button
         android:id="@+id/sendNumber"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_width="377dp"
+        android:layout_height="55dp"
         android:layout_marginTop="40dp"
         android:backgroundTint="@color/green"
         android:paddingVertical="12dp"

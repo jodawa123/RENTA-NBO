@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/lightgrey"
+    app:strokeWidth="1dp"
+    app:cardCornerRadius="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="12dp">
+
+        <ImageView
+            android:id="@+id/imgAmenityIcon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:contentDescription="@string/details_amenity_icon"
+            android:src="@drawable/outline_android_wifi_3_bar_24"
+            app:tint="@color/green" />
+
+        <TextView
+            android:id="@+id/txtAmenityName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/black"
+            android:textSize="13sp"
+            android:text="@string/details_placeholder_amenity" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
+
+

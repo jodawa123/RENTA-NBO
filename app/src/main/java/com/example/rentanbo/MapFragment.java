@@ -1,3 +1,4 @@
+
 package com.example.rentanbo;
 
 import android.os.Bundle;
@@ -14,10 +15,12 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,7 +30,7 @@ import java.util.List;
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private GoogleMap googleMap;
-    private List<Listing> listings;
+    private List<Listing> listings = new ArrayList<>();
     private FilterState filterState;
 
     // Default location (Nairobi, Kenya center)
@@ -64,11 +67,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
 
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+        googleMap.getUiSettings().setMapToolbarEnabled(true);
+
         // Set default camera to Nairobi
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(NAIROBI_CENTER, DEFAULT_ZOOM));
 
         // Load and display listings
-        loadListingsOnMap();
+        if (listings != null && !listings.isEmpty()) {
+            displayListingsOnMap(listings);
+        } else {
+            loadListingsOnMap();
+        }
 
         // Set up marker click listener
         googleMap.setOnMarkerClickListener(marker -> {
@@ -78,6 +88,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             Toast.makeText(requireContext(), title + "\n" + snippet, Toast.LENGTH_SHORT).show();
             return true;
         });
+    }
+
+    public void submitListings(List<Listing> listingItems) {
+        listings = listingItems != null ? new ArrayList<>(listingItems) : new ArrayList<>();
+        if (googleMap != null) {
+            if (listings.isEmpty()) {
+                googleMap.clear();
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(NAIROBI_CENTER, DEFAULT_ZOOM));
+            } else {
+                displayListingsOnMap(listings);
+            }
+        }
     }
 
     /**
@@ -114,6 +136,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         // Clear existing markers
         googleMap.clear();
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
 
         for (Listing listing : listingsToDisplay) {
             // Use location from listing if available, otherwise use a default area
@@ -137,15 +160,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
             // Add marker to map
             googleMap.addMarker(markerOptions);
+
+            boundsBuilder.include(position);
         }
 
-        // Optionally animate camera to first listing
-        if (!listingsToDisplay.isEmpty() && listingsToDisplay.get(0).getLocation() != null) {
-            LatLng firstLocation = new LatLng(
+        if (listingsToDisplay.size() > 1) {
+            LatLngBounds bounds = boundsBuilder.build();
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 120));
+        } else if (!listingsToDisplay.isEmpty()) {
+            LatLng firstPosition = listingsToDisplay.get(0).getLocation() != null
+                    ? new LatLng(
                     listingsToDisplay.get(0).getLocation().getLatitude(),
-                    listingsToDisplay.get(0).getLocation().getLongitude()
-            );
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(firstLocation, DEFAULT_ZOOM));
+                    listingsToDisplay.get(0).getLocation().getLongitude())
+                    : getLocationForNeighborhood(listingsToDisplay.get(0).getNeighborhood());
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(firstPosition, DEFAULT_ZOOM));
         }
     }
 
@@ -173,10 +201,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             case "kilimani":
                 return new LatLng(-1.3000, 36.7667);
             default:
-                // Random offset from center for unknown neighborhoods
-                double lat = NAIROBI_CENTER.latitude + (Math.random() - 0.5) * 0.1;
-                double lng = NAIROBI_CENTER.longitude + (Math.random() - 0.5) * 0.1;
-                return new LatLng(lat, lng);
+                return NAIROBI_CENTER;
         }
     }
 

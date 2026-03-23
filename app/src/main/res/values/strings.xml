@@ -48,6 +48,7 @@
     <string name="home_page_title">Find Your Home</string>
     <string name="welcome_text">Hello\,</string>
     <string name="search_bar_hint">Search by location,type</string>
+    <string name="filter_button_content_description">Show filters</string>
     <string name="home_budget_title">Budget Range</string>
     <string name="home_budget_range_default">KSh 10,000 - 50,000</string>
     <string name="home_amenities_title">Amenities</string>
@@ -93,4 +94,77 @@
     <string name="welcome_back_toast">Welcome back!</string>
     <string name="please_complete_profile">Please complete your profile</string>
     <string name="action_settings">Settings</string>
+
+    <!-- Listing Details -->
+    <string name="details_back">Back</string>
+    <string name="details_share">Share</string>
+    <string name="details_favorite">Save listing</string>
+    <string name="details_description">Description</string>
+    <string name="details_address">Address</string>
+    <string name="details_amenities">Amenities</string>
+    <string name="details_location">Location</string>
+    <string name="details_landlord">Landlord Contact</string>
+    <string name="details_message_landlord">Message Landlord</string>
+    <string name="details_call_landlord">Call Landlord</string>
+    <string name="details_schedule_tour">Schedule Virtual Tour</string>
+    <string name="details_schedule_now">Schedule</string>
+    <string name="details_similar_listings">Similar Listings</string>
+    <string name="details_no_similar_listings">No similar listings found yet.</string>
+    <string name="details_similar_load_error">Could not load similar listings.</string>
+    <string name="details_saved_favorite">Listing saved to favorites</string>
+    <string name="details_removed_favorite">Listing removed from favorites</string>
+    <string name="details_tour_requested">Virtual tour requested for %1$s</string>
+    <string name="details_default_description">A well-located student-friendly unit with practical amenities and easy access to transport and shops.</string>
+    <string name="details_default_address">Near %1$s, Nairobi</string>
+    <string name="details_landlord_unknown">Landlord details unavailable</string>
+    <string name="details_landlord_phone_missing">Phone number unavailable</string>
+    <string name="details_landlord_email_missing">Email unavailable</string>
+    <string name="details_sms_template">Hi, I am interested in %1$s listed on RentaNBO. Is it still available?</string>
+    <string name="details_share_chooser_title">Share listing</string>
+    <string name="details_share_message">Check out %1$s (%2$s) in %3$s on RentaNBO: %4$s</string>
+    <string name="ksh_price_month_format">KSh %1$,d/month</string>
+    <string name="details_image_counter_default">1/1</string>
+    <string name="details_placeholder_title">Listing title</string>
+    <string name="details_placeholder_neighborhood">Neighborhood</string>
+    <string name="details_placeholder_description">Description</string>
+    <string name="details_placeholder_address">Address</string>
+    <string name="details_placeholder_landlord_name">Name</string>
+    <string name="details_placeholder_landlord_phone">Phone</string>
+    <string name="details_placeholder_landlord_email">Email</string>
+    <string name="details_placeholder_amenity">Amenity</string>
+    <string name="details_placeholder_price">KSh 12,000/month</string>
+    <string name="details_amenity_icon">Amenity icon</string>
+    <string name="details_listing_image">Listing image</string>
+    <string name="details_similar_listing_image">Similar listing image</string>
+
+    <!-- Favorites + Offline + Saved Search -->
+    <string name="favorites_title">My Favorites</string>
+    <string name="favorites_empty_title">No favorites yet</string>
+    <string name="favorites_empty_subtitle">Tap the heart on any listing to save it here.</string>
+    <string name="favorites_remove_title">Remove Favorite</string>
+    <string name="favorites_remove_message">Remove %1$s from your favorites?</string>
+    <string name="favorites_remove_confirm">Remove</string>
+    <string name="favorites_remove_failed">Could not remove favorite right now.</string>
+    <string name="favorites_item_title_fallback">this listing</string>
+    <string name="offline_banner_text">You are offline. Showing cached favorites.</string>
+
+    <string name="save_this_search">Save This Search</string>
+    <string name="saved_search_success">Search saved. We will use this for future SMS alerts.</string>
+    <string name="saved_search_error">Could not save search right now.</string>
+    <string name="saved_search_missing_user">Please complete your profile before saving searches.</string>
+
+    <string name="quick_tips_title">Quick tips</string>
+    <string name="quick_tips_message">Use Filters to narrow listings, tap the heart to save favorites, and use Save This Search to get future alert options.</string>
+    <string name="tip_filter_button">Open filters</string>
+    <string name="tip_open_favorites">Open your favorites</string>
+    <string name="tip_save_search">Save this search for future alerts</string>
+    <string name="tip_back">Go back</string>
+    <string name="tip_swipe_remove_favorite">Swipe a card left or right to remove it</string>
+
+    <string-array name="virtual_tour_slots">
+        <item>Today (2:00 PM - 4:00 PM)</item>
+        <item>Tomorrow (10:00 AM - 12:00 PM)</item>
+        <item>This Weekend</item>
+        <item>Any time this week</item>
+    </string-array>
 </resources>

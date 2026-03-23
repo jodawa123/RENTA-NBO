@@ -1,5 +1,7 @@
 package com.example.rentanbo;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -8,9 +10,14 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.TooltipCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.preference.PreferenceManager;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -23,6 +30,8 @@ import java.util.List;
 public class HomePage extends BaseActivity {
 
     private static final String TAG = "HomePage";
+    private static final String KEY_FILTER_PANEL_VISIBLE = "key_filter_panel_visible";
+    private static final String KEY_TIPS_SHOWN = "home_tips_shown";
 
     // ================= USER DATA =================
     private String userId = "";
@@ -46,12 +55,16 @@ public class HomePage extends BaseActivity {
     private TextView resultsCount;
     private RecyclerView recyclerView;
     private SwitchMaterial languageSwitch;
+    private ImageButton favoritesButton;
+    private Button saveSearchButton;
 
     // ================= STATE =================
     private ListingsAdapter adapter;
     private FirestoreManager firestoreManager;
     private FilterState filterState;
     private boolean isFilterVisible = false;
+    private MapFragment mapFragment;
+    private List<Listing> latestListings = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +74,12 @@ public class HomePage extends BaseActivity {
         receiveUserData();
         initCore();
         initViews();
+
+        if (savedInstanceState != null) {
+            isFilterVisible = savedInstanceState.getBoolean(KEY_FILTER_PANEL_VISIBLE, false);
+        }
+        setFilterPanelVisible(isFilterVisible);
+
         registerAllViewsForTranslation();
         setupRecyclerView();
         setupFilterToggle();
@@ -69,6 +88,9 @@ public class HomePage extends BaseActivity {
         setupSearchBar();
         setupViewToggle();
         setupLanguageSwitch();
+        setupFavoritesButton();
+        setupSaveSearchButton();
+        setupTooltipsAndFirstTimeHelp();
         loadProfileFiltersAndListings();
     }
 
@@ -156,8 +178,89 @@ public class HomePage extends BaseActivity {
         resultsCount = findViewById(R.id.editTextText2);
         recyclerView = findViewById(R.id.recyclerView);
         languageSwitch = findViewById(R.id.switchlanguage);
+        favoritesButton = findViewById(R.id.btnOpenFavorites);
+        saveSearchButton = findViewById(R.id.btnSaveSearch);
+    }
 
-        filterDetailsLayout.setVisibility(View.GONE);
+    private void setupFavoritesButton() {
+        if (favoritesButton == null) {
+            return;
+        }
+
+        favoritesButton.setOnClickListener(v -> {
+            String resolvedUserId = userId;
+            if (resolvedUserId == null || resolvedUserId.trim().isEmpty()) {
+                resolvedUserId = SessionManager.getInstance(this).getUserId();
+            }
+
+            Intent favoritesIntent = new Intent(this, FavoritesActivity.class);
+            favoritesIntent.putExtra(ListingDetailsActivity.EXTRA_USER_ID, resolvedUserId != null ? resolvedUserId : "");
+            startActivity(favoritesIntent);
+        });
+    }
+
+    private void setupSaveSearchButton() {
+        if (saveSearchButton == null) {
+            return;
+        }
+
+        saveSearchButton.setOnClickListener(v -> {
+            String resolvedUserId = userId;
+            if (resolvedUserId == null || resolvedUserId.trim().isEmpty()) {
+                resolvedUserId = SessionManager.getInstance(this).getUserId();
+            }
+
+            if (resolvedUserId == null || resolvedUserId.trim().isEmpty()) {
+                showToast(getString(R.string.saved_search_missing_user));
+                return;
+            }
+
+            saveSearchButton.setEnabled(false);
+            firestoreManager.saveSearchCriteria(resolvedUserId, filterState, new FirestoreManager.SimpleCallback() {
+                @Override
+                public void onSuccess() {
+                    runOnUiThread(() -> {
+                        saveSearchButton.setEnabled(true);
+                        showToast(getString(R.string.saved_search_success));
+                    });
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    runOnUiThread(() -> {
+                        saveSearchButton.setEnabled(true);
+                        showToast(getString(R.string.saved_search_error));
+                    });
+                }
+            });
+        });
+    }
+
+    private void setupTooltipsAndFirstTimeHelp() {
+        if (filterButton != null) {
+            TooltipCompat.setTooltipText(filterButton, getString(R.string.tip_filter_button));
+        }
+        if (favoritesButton != null) {
+            TooltipCompat.setTooltipText(favoritesButton, getString(R.string.tip_open_favorites));
+        }
+        if (saveSearchButton != null) {
+            TooltipCompat.setTooltipText(saveSearchButton, getString(R.string.tip_save_search));
+        }
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean tipsShown = prefs.getBoolean(KEY_TIPS_SHOWN, false);
+        if (tipsShown) {
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.quick_tips_title)
+                .setMessage(getString(R.string.quick_tips_message))
+                .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                    prefs.edit().putBoolean(KEY_TIPS_SHOWN, true).apply();
+                })
+                .setOnCancelListener(dialog -> prefs.edit().putBoolean(KEY_TIPS_SHOWN, true).apply())
+                .show();
     }
 
     private void loadProfileFiltersAndListings() {
@@ -230,7 +333,7 @@ public class HomePage extends BaseActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new ListingsAdapter(this, listing -> {
-            showToast("Viewing: " + listing.getTitle());
+            openListingDetails(listing);
         });
 
         recyclerView.setAdapter(adapter);
@@ -239,10 +342,33 @@ public class HomePage extends BaseActivity {
     // ================= FILTER TOGGLE =================
     private void setupFilterToggle() {
         filterButton.setOnClickListener(v -> {
-            isFilterVisible = !isFilterVisible;
-            filterDetailsLayout.setVisibility(
-                    isFilterVisible ? View.VISIBLE : View.GONE);
+            boolean shouldShow = filterDetailsLayout.getVisibility() != View.VISIBLE;
+            setFilterPanelVisible(shouldShow);
         });
+    }
+
+    private void setFilterPanelVisible(boolean visible) {
+        isFilterVisible = visible;
+        if (filterDetailsLayout != null) {
+            filterDetailsLayout.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+        if (filterButton != null) {
+            filterButton.setBackgroundTintList(ContextCompat.getColorStateList(
+                    this,
+                    visible ? R.color.green : R.color.yellow
+            ));
+            filterButton.setColorFilter(ContextCompat.getColor(
+                    this,
+                    visible ? R.color.white : R.color.black
+            ));
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_FILTER_PANEL_VISIBLE,
+                filterDetailsLayout != null && filterDetailsLayout.getVisibility() == View.VISIBLE);
     }
 
     // ================= BUDGET =================
@@ -361,16 +487,32 @@ public class HomePage extends BaseActivity {
             findViewById(R.id.fragment_container)
                     .setVisibility(View.VISIBLE);
 
+            ensureMapFragmentAttached();
+            if (mapFragment != null) {
+                mapFragment.submitListings(latestListings);
+            }
+
             mapButton.setBackgroundTintList(
                     ContextCompat.getColorStateList(this, R.color.green));
 
             listButton.setBackgroundTintList(
                     ContextCompat.getColorStateList(this, R.color.lightgrey));
 
-            showToast(isSwahiliModeEnabled()
-                    ? "Mwonekano wa ramani unakuja hivi karibuni"
-                    : "Map view coming soon");
         });
+    }
+
+    private void ensureMapFragmentAttached() {
+        Fragment existing = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+        if (existing instanceof MapFragment) {
+            mapFragment = (MapFragment) existing;
+            return;
+        }
+
+        mapFragment = new MapFragment();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, mapFragment)
+                .commit();
     }
 
     // ================= LANGUAGE =================
@@ -403,6 +545,7 @@ public class HomePage extends BaseActivity {
         registerForTranslation(findViewById(R.id.button), R.string.list);
         registerForTranslation(findViewById(R.id.button2), R.string.map);
         registerForTranslation(findViewById(R.id.editTextText2), R.string.results);
+        registerForTranslation(findViewById(R.id.btnSaveSearch), R.string.save_this_search);
     }
 
     // ================= LOAD LISTINGS =================
@@ -416,11 +559,19 @@ public class HomePage extends BaseActivity {
 
                         runOnUiThread(() -> {
 
+                            latestListings = listings != null
+                                    ? new ArrayList<>(listings)
+                                    : new ArrayList<>();
+
                             adapter.setListings(
-                                    listings != null ? listings : new ArrayList<>());
+                                    latestListings);
 
                             updateResultsCount(
-                                    listings != null ? listings.size() : 0);
+                                    latestListings.size());
+
+                            if (mapFragment != null) {
+                                mapFragment.submitListings(latestListings);
+                            }
                         });
                     }
 
@@ -442,6 +593,23 @@ public class HomePage extends BaseActivity {
 
     private boolean isSwahiliModeEnabled() {
         return translationManager != null && translationManager.isSwahiliMode();
+    }
+
+    private void openListingDetails(Listing listing) {
+        if (listing == null || listing.getId().trim().isEmpty()) {
+            showToast("Could not open listing details");
+            return;
+        }
+
+        String resolvedUserId = userId;
+        if (resolvedUserId == null || resolvedUserId.trim().isEmpty()) {
+            resolvedUserId = SessionManager.getInstance(this).getUserId();
+        }
+
+        Intent detailsIntent = new Intent(this, ListingDetailsActivity.class);
+        detailsIntent.putExtra(ListingDetailsActivity.EXTRA_LISTING_ID, listing.getId());
+        detailsIntent.putExtra(ListingDetailsActivity.EXTRA_USER_ID, resolvedUserId != null ? resolvedUserId : "");
+        startActivity(detailsIntent);
     }
 
     private String getLocalizedGuestName() {
