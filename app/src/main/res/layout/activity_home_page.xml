@@ -8,65 +8,21 @@
     android:padding="12dp"
     tools:context=".HomePage">
 
-    <!-- HEADER: Title + Language Switch -->
+    <!-- HEADER: hellp + Language Switch -->
+
     <LinearLayout
         android:id="@+id/top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:layout_marginHorizontal="16dp"
-        android:orientation="horizontal"
+        android:layout_marginTop="20dp"
         android:gravity="center_vertical"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/textView6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:fontFamily="@font/alata"
-            android:text="@string/home_page_title"
-            android:textColor="@color/black"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchlanguage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="@string/switch_language_en"
-            android:textAlignment="textEnd"
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:thumb="@drawable/rounded_globe_24"
-            app:thumbTint="@color/grey"
-            app:trackTint="@color/lightgrey" />
-
-        <ImageButton
-            android:id="@+id/btnOpenFavorites"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:background="@android:color/transparent"
-            android:contentDescription="@string/favorites_title"
-            android:padding="8dp"
-            android:src="@drawable/baseline_favorite_24"
-            app:tint="@color/green" />
-
-    </LinearLayout>
-
-    <!-- GREETING: Welcome + UserName -->
-    <LinearLayout
-        android:id="@+id/greeting"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
         android:orientation="horizontal"
+        android:weightSum="3"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/top">
+        app:layout_constraintTop_toTopOf="parent"
+        >
+
 
         <TextView
             android:id="@+id/textView11"
@@ -74,7 +30,7 @@
             android:layout_height="wrap_content"
             android:text="@string/welcome_text"
             android:textColor="@color/green"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <TextView
@@ -86,6 +42,56 @@
             android:textColor="@color/grey"
             android:textSize="16sp" />
 
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchlanguage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/switch_language_en"
+            android:textAlignment="textEnd"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:thumb="@drawable/rounded_globe_24"
+            app:thumbTint="@color/grey"
+            app:trackTint="@color/lightgrey" />
+
+    </LinearLayout>
+
+    <!-- GREETING: Welcome + UserName -->
+    <LinearLayout
+        android:id="@+id/greeting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/top">
+
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/alata"
+            android:text="@string/home_page_title"
+            android:textColor="@color/black"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/btnOpenFavorites"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/favorites_title"
+            android:padding="8dp"
+            android:scaleType="fitEnd"
+            android:src="@drawable/baseline_favorite_24"
+            app:tint="@color/green" />
+
+
     </LinearLayout>
 
     <!-- SEARCH + FILTER BUTTON -->
@@ -94,31 +100,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="0dp"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="15dp"
         android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/greeting">
 
         <SearchView
             android:id="@+id/search_bar"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="50dp"
             android:layout_weight="1"
-            android:hint="@string/search_bar_hint"
-            android:padding="6dp"
             android:background="@drawable/textview1"
-            android:iconifiedByDefault="false" />
+            android:hint="@string/search_bar_hint"
+            android:paddingVertical="6dp" />
 
         <androidx.constraintlayout.utils.widget.ImageFilterButton
             android:id="@+id/imageFilterButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_marginStart="8dp"
-            android:background="@color/yellow"
             android:backgroundTint="@android:color/transparent"
-            android:contentDescription="@string/filter_button_content_description"
+            android:padding="6dp"
             android:scaleType="centerInside"
-            android:padding="10dp"
             app:srcCompat="@drawable/outline_filter_list_24" />
 
     </LinearLayout>
@@ -132,8 +137,8 @@
         android:layout_marginTop="6dp"
         android:orientation="vertical"
         android:padding="10dp"
-        android:background="@color/offwhite"
         android:visibility="gone"
+        android:background="@color/offwhite"
         app:layout_constraintTop_toBottomOf="@+id/searchandfilter"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -268,9 +273,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            android:backgroundTint="@color/green"
+            android:backgroundTint="@color/yellow"
             android:text="@string/save_this_search"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             app:cornerRadius="20dp" />
 
     </LinearLayout>
@@ -278,25 +283,26 @@
     <!-- LIST/MAP VIEW TOGGLE BUTTONS -->
     <LinearLayout
         android:id="@+id/buttonslistandmap"
+        style="?android:attr/buttonBarStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="0dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="10dp"
         android:gravity="center"
         android:orientation="horizontal"
-        style="?android:attr/buttonBarStyle"
-        app:layout_constraintTop_toBottomOf="@+id/filterdetails">
+        app:layout_constraintTop_toBottomOf="@+id/filterdetails"
+        tools:layout_editor_absoluteX="12dp">
 
         <Button
             android:id="@+id/button"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_weight="1"
             android:layout_marginEnd="6dp"
+            android:layout_weight="1"
             android:backgroundTint="@color/green"
             android:text="@string/list"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:textSize="14sp" />
 
         <Button
@@ -340,15 +346,62 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextText2" />
 
-    <!-- FRAGMENT CONTAINER FOR MAP VIEW -->
+    <LinearLayout
+        android:id="@+id/mapbuttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="16dp"
+        android:visibility="gone"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toBottomOf="@+id/editTextText2"
+        android:weightSum="3">
+
+        <Button
+            android:id="@+id/langatab"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:backgroundTint="@color/grey"
+            android:text="@string/langata"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+        <Button
+            android:id="@+id/rongaib"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:backgroundTint="@color/grey"
+            android:text="@string/rongai"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+        <Button
+            android:id="@+id/kahawab"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:backgroundTint="@color/grey"
+            android:text="@string/kahawa"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+
     <FrameLayout
-        android:id="@+id/fragment_container"
+        android:id="@+id/map_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="6dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextText2" />
+        app:layout_constraintTop_toBottomOf="@+id/mapbuttons" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

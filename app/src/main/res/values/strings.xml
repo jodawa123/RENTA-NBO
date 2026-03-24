@@ -45,7 +45,7 @@
 
     <!-- HomePage -->
 
-    <string name="home_page_title">Find Your Home</string>
+    <string name="home_page_title">Find Your Home Today</string>
     <string name="welcome_text">Hello\,</string>
     <string name="search_bar_hint">Search by location,type</string>
     <string name="filter_button_content_description">Show filters</string>
@@ -106,7 +106,7 @@
     <string name="details_landlord">Landlord Contact</string>
     <string name="details_message_landlord">Message Landlord</string>
     <string name="details_call_landlord">Call Landlord</string>
-    <string name="details_schedule_tour">Schedule Virtual Tour</string>
+    <string name="details_schedule_tour">Schedule Tour</string>
     <string name="details_schedule_now">Schedule</string>
     <string name="details_similar_listings">Similar Listings</string>
     <string name="details_no_similar_listings">No similar listings found yet.</string>

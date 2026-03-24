@@ -1,7 +1,6 @@
 package com.example.rentanbo;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,8 +11,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DecodeFormat;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,14 @@ public class ListingsAdapter extends RecyclerView.Adapter<ListingsAdapter.Listin
     private List<Listing> listings = new ArrayList<>();
     private Context context;
     private OnItemClickListener listener;
+
+    // Optimized Glide options for faster loading
+    private static final RequestOptions GLIDE_OPTIONS = new RequestOptions()
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .format(DecodeFormat.PREFER_RGB_565)
+            .placeholder(R.drawable.bedsitter3)
+            .error(R.drawable.bedsitter3)
+            .centerCrop();
 
     public interface OnItemClickListener {
         void onViewDetailsClick(Listing listing);
@@ -51,6 +60,9 @@ public class ListingsAdapter extends RecyclerView.Adapter<ListingsAdapter.Listin
     public int getItemCount() {
         return listings.size();
     }
+    public List<Listing> getListings() {
+        return listings;
+    }
 
     public void setListings(List<Listing> listings) {
         this.listings = listings;
@@ -61,52 +73,34 @@ public class ListingsAdapter extends RecyclerView.Adapter<ListingsAdapter.Listin
         private ImageView imgProperty, imgFavorite;
         private TextView txtPrice, txtTitle, txtLocation;
         private MaterialButton btnViewDetails;
-        private ImageView wifiIcon, waterIcon, securityIcon;
 
         ListingViewHolder(@NonNull View itemView) {
             super(itemView);
             imgProperty = itemView.findViewById(R.id.imgProperty);
-            imgFavorite = itemView.findViewById(R.id.imgFavorite);
             txtPrice = itemView.findViewById(R.id.txtPrice);
             txtTitle = itemView.findViewById(R.id.txtTitle);
             txtLocation = itemView.findViewById(R.id.txtLocation);
             btnViewDetails = itemView.findViewById(R.id.btnViewDetails);
-            wifiIcon = itemView.findViewById(R.id.wifiIcon);
-            waterIcon = itemView.findViewById(R.id.waterIcon);
-            securityIcon = itemView.findViewById(R.id.securityIcon);
         }
 
         void bind(Listing listing) {
+            // Set text immediately
             txtPrice.setText(listing.getFormattedPrice());
             txtTitle.setText(listing.getTitle());
             txtLocation.setText(listing.getNeighborhood());
 
-            // Load image if available
+            // Load image directly from HTTPS URL
             if (listing.getImages() != null && !listing.getImages().isEmpty()) {
+                String imageUrl = listing.getImages().get(0);
+
                 Glide.with(context)
-                        .load(listing.getImages().get(0))
-                        .placeholder(R.drawable.bedsitter3)
-                        .error(R.drawable.bedsitter3)
+                        .load(imageUrl)
+                        .apply(GLIDE_OPTIONS)
                         .into(imgProperty);
             } else {
                 imgProperty.setImageResource(R.drawable.bedsitter3);
             }
 
-            // Handle amenities visibility
-            if (listing.getAmenities() != null) {
-                wifiIcon.setVisibility(listing.getAmenities().contains("WiFi") ? View.VISIBLE : View.GONE);
-                waterIcon.setVisibility(listing.getAmenities().contains("Borehole Water") ||
-                        listing.getAmenities().contains("Municipal Water") ? View.VISIBLE : View.GONE);
-                securityIcon.setVisibility(listing.getAmenities().contains("Security Lights") ||
-                        listing.getAmenities().contains("Electric Fence") ? View.VISIBLE : View.GONE);
-            }
-
-            // Favorite click
-            imgFavorite.setOnClickListener(v -> {
-                // Toggle favorite state
-                imgFavorite.setSelected(!imgFavorite.isSelected());
-                // TODO: Save to user's favorites
-            });
 
             // View details click
             btnViewDetails.setOnClickListener(v -> {

@@ -19,22 +19,10 @@
             android:layout_width="0dp"
             android:layout_height="200dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/bedsitter3"
+            android:src="@color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
-        <!-- Heart Icon -->
-        <ImageView
-            android:id="@+id/imgFavorite"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_margin="12dp"
-            android:padding="8dp"
-            android:src="@drawable/baseline_favorite_24"
-            app:tint="@color/white"
-            app:layout_constraintEnd_toEndOf="@id/imgProperty"
-            app:layout_constraintTop_toTopOf="@id/imgProperty" />
 
         <!-- Content Container -->
         <LinearLayout
@@ -105,37 +93,7 @@
                 android:textColor="@color/grey"
                 android:textSize="14sp" />
 
-            <!-- Icons Row -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp">
 
-                <ImageView
-                    android:id="@+id/wifiIcon"
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:layout_marginEnd="12dp"
-                    android:src="@drawable/outline_android_wifi_3_bar_24"
-                    app:tint="#00A651" />
-
-                <ImageView
-                    android:id="@+id/waterIcon"
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:layout_marginEnd="12dp"
-                    android:src="@drawable/outline_humidity_low_24"
-                    app:tint="#00A651" />
-
-                <ImageView
-                    android:id="@+id/securityIcon"
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@drawable/outline_security_24"
-                    app:tint="#00A651" />
-
-            </LinearLayout>
 
             <!-- View Details Button -->
             <com.google.android.material.button.MaterialButton
