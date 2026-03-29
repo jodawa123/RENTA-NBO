@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.preference.PreferenceManager;
 
-import com.google.android.material.chip.Chip;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.FirebaseDatabase;
@@ -48,8 +47,6 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
     private String userName = "";
     private String preferredNeighborhood = "";
     private String phoneNumber = "";
-    private int userBudgetMin = 10000;
-    private int userBudgetMax = 50000;
     private String userLanguage = "en";
 
     // ================= UI =================
@@ -60,8 +57,12 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
     private LinearLayout filterDetailsLayout;
     private SeekBar budgetSeekBar;
     private TextView budgetRangeText;
-    private Chip chipWifi, chipParking, chipSecurity, chipBorehole;
-    private Chip chipStudio, chipBedsitter, chipOneBed;
+
+    // Amenity filter buttons
+    private Button btnWifi, btnParking, btnSecurity, btnBorehole;
+    // House type filter buttons
+    private Button btnStudio, btnBedsitter, btnOneBed;
+
     private Button listButton, mapButton;
     private Button langataButton, rongaiButton, kahawaButton;
     private Button saveSearchButton;
@@ -78,12 +79,14 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
     private boolean isMapView = false;
     private MapFragment mapFragment;
 
-    // Local filter state — single source of truth for both list and map
-    private int minPrice = 10000;
-    private int maxPrice = 50000;
-    private Set<String> selectedAmenities = new HashSet<>();
+    // Filter state — all start in "show everything" mode
+    // Budget: 0 → Integer.MAX_VALUE means no price filter until seekbar is moved
+    private int minPrice = 0;
+    private int maxPrice = Integer.MAX_VALUE;
+    private boolean budgetFilterActive = false;   // only filter price when seekbar touched
+    private Set<String> selectedAmenities  = new HashSet<>();
     private Set<String> selectedHouseTypes = new HashSet<>();
-    private String searchQuery = "";
+    private String searchQuery        = "";
     private String currentNeighborhood = "";
 
     // ================= LIFECYCLE =================
@@ -114,7 +117,7 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
         setupRecyclerView();
         setupFilterToggle();
         setupBudgetSeekBar();
-        setupChips();
+        setupFilterButtons();
         setupSearchBar();
         setupViewToggle();
         setupNeighborhoodButtons();
@@ -124,7 +127,9 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
         setupTooltipsAndFirstTimeHelp();
 
         db = FirebaseFirestore.getInstance();
-        loadProfileFiltersAndListings();
+
+        // Load profile for name/greeting only, then fetch ALL listings
+        loadProfileThenAllListings();
     }
 
     @Override
@@ -143,8 +148,6 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
             userId                = getIntent().getStringExtra("userId");
             preferredNeighborhood = getIntent().getStringExtra("neighborhood");
             phoneNumber           = getIntent().getStringExtra("phoneNumber");
-            userBudgetMin         = getIntent().getIntExtra("budgetMin", 10000);
-            userBudgetMax         = getIntent().getIntExtra("budgetMax", 50000);
             userLanguage          = getIntent().getStringExtra("language");
 
             if (userName == null)              userName = "";
@@ -154,49 +157,37 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
             if (userLanguage == null)          userLanguage = "en";
         }
 
-        // Fallback 1: SharedData
-        if (phoneNumber.isEmpty()) {
-            phoneNumber = SharedData.getCurrentPhoneNumber();
-        }
+        if (phoneNumber.isEmpty()) phoneNumber = SharedData.getCurrentPhoneNumber();
 
-        // Fallback 2: SessionManager
         if (phoneNumber.isEmpty()) {
             SessionManager session = SessionManager.getInstance(this);
             if (session.isUserLoggedIn()) {
                 phoneNumber = session.getPhoneNumber();
-                if (userName.isEmpty())               userName = session.getUserName();
-                if (userId.isEmpty())                 userId   = session.getUserId();
-                if (preferredNeighborhood.isEmpty())  preferredNeighborhood = session.getPreferredNeighborhood();
-                if (userBudgetMin <= 0)               userBudgetMin = session.getBudgetMin();
-                if (userBudgetMax <= 0)               userBudgetMax = session.getBudgetMax();
+                if (userName.isEmpty()) userName = session.getUserName();
+                if (userId.isEmpty())   userId   = session.getUserId();
             }
         }
-
-        // Seed local filter state from profile values
-        minPrice = userBudgetMin;
-        maxPrice = userBudgetMax;
-        if (!preferredNeighborhood.isEmpty()) {
-            currentNeighborhood = preferredNeighborhood;
-        }
+        // NOTE: budget and neighbourhood are intentionally NOT seeded here.
+        // All listings must show on load — user applies filters manually.
     }
 
     // ================= INIT VIEWS =================
 
     private void initViews() {
-        welcomeName          = findViewById(R.id.name);
-        searchBar            = findViewById(R.id.search_bar);
-        filterButton         = findViewById(R.id.imageFilterButton);
-        filterDetailsLayout  = findViewById(R.id.filterdetails);
-        budgetSeekBar        = findViewById(R.id.seekBar2);
-        budgetRangeText      = findViewById(R.id.textView13);
+        welcomeName         = findViewById(R.id.name);
+        searchBar           = findViewById(R.id.search_bar);
+        filterButton        = findViewById(R.id.imageFilterButton);
+        filterDetailsLayout = findViewById(R.id.filterdetails);
+        budgetSeekBar       = findViewById(R.id.seekBar2);
+        budgetRangeText     = findViewById(R.id.textView13);
 
-        chipWifi      = findViewById(R.id.chip);
-        chipParking   = findViewById(R.id.chip2);
-        chipSecurity  = findViewById(R.id.chip3);
-        chipBorehole  = findViewById(R.id.chip4);
-        chipStudio    = findViewById(R.id.chip5);
-        chipBedsitter = findViewById(R.id.chip6);
-        chipOneBed    = findViewById(R.id.chip7);
+        btnWifi      = findViewById(R.id.btnWifi);
+        btnParking   = findViewById(R.id.btnParking);
+        btnSecurity  = findViewById(R.id.btnSecurity);
+        btnBorehole  = findViewById(R.id.btnBorehole);
+        btnStudio    = findViewById(R.id.btnStudio);
+        btnBedsitter = findViewById(R.id.btnBedsitter);
+        btnOneBed    = findViewById(R.id.btnOneBed);
 
         listButton       = findViewById(R.id.button);
         mapButton        = findViewById(R.id.button2);
@@ -216,10 +207,16 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
 
     // ================= PROFILE LOADING =================
 
-    private void loadProfileFiltersAndListings() {
+    /**
+     * Loads profile from Firebase for the greeting name ONLY.
+     * Budget and neighbourhood from profile are intentionally ignored
+     * so ALL listings load without any pre-applied filters.
+     */
+    private void loadProfileThenAllListings() {
         String phoneKey = getPhoneKey();
         if (phoneKey.isEmpty()) {
-            applyProfileAndLoadListings();
+            updateWelcomeName();
+            loadAllListings();
             return;
         }
 
@@ -227,49 +224,25 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
                 .getReference("users")
                 .child(phoneKey)
                 .get()
-                .addOnSuccessListener(this::applyProfileSnapshot)
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) {
+                        String profileName = snapshot.child("name").getValue(String.class);
+                        if (profileName != null && !profileName.trim().isEmpty()) {
+                            userName = profileName.trim();
+                        }
+                    }
+                    updateWelcomeName();
+                    loadAllListings();
+                })
                 .addOnFailureListener(e -> {
                     Log.w(TAG, "Profile load failed: " + e.getMessage());
-                    applyProfileAndLoadListings();
+                    updateWelcomeName();
+                    loadAllListings();
                 });
     }
 
-    private void applyProfileSnapshot(DataSnapshot snapshot) {
-        if (snapshot.exists()) {
-            String profileName         = snapshot.child("name").getValue(String.class);
-            String profileNeighborhood = snapshot.child("preferredNeighborhood").getValue(String.class);
-            Long   monthlyBudget       = snapshot.child("monthlyBudget").getValue(Long.class);
-
-            if (profileName != null && !profileName.trim().isEmpty()) {
-                userName = profileName.trim();
-            }
-            if (profileNeighborhood != null && !profileNeighborhood.trim().isEmpty()) {
-                preferredNeighborhood = profileNeighborhood.trim();
-            }
-            if (monthlyBudget != null) {
-                userBudgetMax = (int) Math.max(10000, Math.min(50000, monthlyBudget));
-                userBudgetMin = 10000;
-            }
-        }
-        applyProfileAndLoadListings();
-    }
-
-    private void applyProfileAndLoadListings() {
-        minPrice = userBudgetMin;
-        maxPrice = userBudgetMax;
-        if (!preferredNeighborhood.isEmpty() && currentNeighborhood.isEmpty()) {
-            currentNeighborhood = preferredNeighborhood;
-        }
-
+    private void updateWelcomeName() {
         welcomeName.setText(" " + (userName.isEmpty() ? getLocalizedGuestName() : userName));
-
-        // Sync seekbar to loaded budget values
-        if (budgetSeekBar != null) {
-            budgetSeekBar.setProgress((maxPrice - 10000) / 1000);
-            updateBudgetText(minPrice, maxPrice);
-        }
-
-        loadAllListings();
     }
 
     private String getPhoneKey() {
@@ -279,6 +252,11 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
 
     // ================= LOAD ALL LISTINGS FROM FIRESTORE =================
 
+    /**
+     * Fetches every document in the "listings" collection with zero
+     * server-side filtering. All filtering happens client-side via
+     * matchesFilters() only when the user explicitly sets a filter.
+     */
     private void loadAllListings() {
         resultsCount.setText("Loading listings...");
 
@@ -312,39 +290,42 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
     // ================= FILTER + DISPLAY =================
 
     /**
-     * Single source of truth — always call this to refresh both
-     * the RecyclerView and the MapFragment together.
+     * Applies only the filters the user has explicitly set.
+     * On first load all filters are in default/off state so every
+     * listing passes through and is shown.
      */
     private void applyFiltersAndDisplay() {
         List<Listing> filtered = new ArrayList<>();
         for (Listing listing : allListings) {
             if (matchesFilters(listing)) filtered.add(listing);
         }
-
         adapter.setListings(filtered);
         updateResultsCount(filtered.size());
-
-        // Core map fix: push filtered data to fragment instead of letting
-        // the fragment query Firestore independently
-        if (mapFragment != null) {
-            mapFragment.setListings(filtered);
-        }
-
-        Log.d(TAG, "Displaying " + filtered.size() + " listings");
+        if (mapFragment != null) mapFragment.setListings(filtered);
+        Log.d(TAG, "Displaying " + filtered.size() + " / " + allListings.size() + " listings");
     }
 
     private boolean matchesFilters(Listing listing) {
+        // Neighbourhood — only active when user taps a neighbourhood button
         if (!currentNeighborhood.isEmpty()
                 && !currentNeighborhood.equalsIgnoreCase(listing.getNeighborhood())) {
             return false;
         }
-        if (listing.getPrice() < minPrice || listing.getPrice() > maxPrice) {
-            return false;
+
+        // Budget — only active after the user has moved the seekbar
+        if (budgetFilterActive) {
+            if (listing.getPrice() < minPrice || listing.getPrice() > maxPrice) {
+                return false;
+            }
         }
+
+        // House type — only active when at least one type button is selected
         if (!selectedHouseTypes.isEmpty()
                 && !selectedHouseTypes.contains(listing.getHouseType().toLowerCase().trim())) {
             return false;
         }
+
+        // Amenities — listing must have ALL selected amenities
         if (!selectedAmenities.isEmpty()) {
             for (String needed : selectedAmenities) {
                 boolean found = false;
@@ -354,12 +335,15 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
                 if (!found) return false;
             }
         }
+
+        // Search text — only active when search bar has input
         if (!searchQuery.isEmpty()) {
             String q = searchQuery;
             return listing.getTitle().toLowerCase().contains(q)
                     || listing.getNeighborhood().toLowerCase().contains(q)
                     || listing.getHouseType().toLowerCase().contains(q);
         }
+
         return true;
     }
 
@@ -371,7 +355,7 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
         recyclerView.setAdapter(adapter);
     }
 
-    // ================= VIEW TOGGLE (List ↔ Map) =================
+    // ================= VIEW TOGGLE =================
 
     private void setupViewToggle() {
         listButton.setOnClickListener(v -> {
@@ -388,8 +372,10 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
 
             listButton.setBackgroundTintList(
                     ContextCompat.getColorStateList(this, R.color.green));
+            listButton.setTextColor(ContextCompat.getColor(this, android.R.color.black));
             mapButton.setBackgroundTintList(
-                    ContextCompat.getColorStateList(this, R.color.lightgrey));
+                    ContextCompat.getColorStateList(this, android.R.color.transparent));
+            mapButton.setTextColor(ContextCompat.getColor(this, R.color.black));
 
             currentNeighborhood = "";
             updateNeighborhoodButtons(null);
@@ -404,8 +390,10 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
 
             mapButton.setBackgroundTintList(
                     ContextCompat.getColorStateList(this, R.color.green));
+            mapButton.setTextColor(ContextCompat.getColor(this, android.R.color.black));
             listButton.setBackgroundTintList(
-                    ContextCompat.getColorStateList(this, R.color.lightgrey));
+                    ContextCompat.getColorStateList(this, android.R.color.transparent));
+            listButton.setTextColor(ContextCompat.getColor(this, R.color.black));
 
             if (mapFragment == null) {
                 mapFragment = new MapFragment();
@@ -414,7 +402,6 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
                         .commitAllowingStateLoss();
             }
 
-            // Always push current filtered listings when switching to map view
             applyFiltersAndDisplay();
 
             if (!currentNeighborhood.isEmpty()) {
@@ -447,6 +434,7 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
     private void updateNeighborhoodButtons(Button selected) {
         for (Button btn : new Button[]{langataButton, rongaiButton, kahawaButton}) {
             btn.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.grey));
+            btn.setTextColor(ContextCompat.getColor(this, android.R.color.white));
         }
         if (selected != null) {
             selected.setBackgroundTintList(
@@ -463,7 +451,6 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
         });
     }
 
-    /** Show/hide filter panel and change filter button tint to signal active state. */
     private void setFilterPanelVisible(boolean visible) {
         isFilterVisible = visible;
         if (filterDetailsLayout != null) {
@@ -477,24 +464,38 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
         }
     }
 
-    // ================= BUDGET =================
+    // ================= BUDGET SEEKBAR =================
 
     private void setupBudgetSeekBar() {
+        // Seekbar starts at max (50 000) — visually shows "no restriction"
         budgetSeekBar.setMax(40);
-        budgetSeekBar.setProgress((maxPrice - 10000) / 1000);
-        updateBudgetText(minPrice, maxPrice);
+        budgetSeekBar.setProgress(40);
+        budgetRangeText.setText(isSwahiliModeEnabled()
+                ? "Hakuna kikomo cha bei"
+                : "All prices");
 
         budgetSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                maxPrice = 10000 + (progress * 1000);
+                if (!fromUser) return;
+                budgetFilterActive = true;
                 minPrice = 10000;
+                maxPrice = 10000 + (progress * 1000);
                 updateBudgetText(minPrice, maxPrice);
-                if (fromUser) applyFiltersAndDisplay();
+                applyFiltersAndDisplay();
             }
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override public void onStopTrackingTouch(SeekBar seekBar) {
-                applyFiltersAndDisplay();
+                // If dragged back to max, treat as "no budget filter"
+                if (budgetSeekBar.getProgress() == budgetSeekBar.getMax()) {
+                    budgetFilterActive = false;
+                    minPrice = 0;
+                    maxPrice = Integer.MAX_VALUE;
+                    budgetRangeText.setText(isSwahiliModeEnabled()
+                            ? "Hakuna kikomo cha bei"
+                            : "All prices");
+                    applyFiltersAndDisplay();
+                }
             }
         });
     }
@@ -505,39 +506,35 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
                 : "KSh " + min + " - " + max);
     }
 
-    // ================= CHIPS =================
+    // ================= FILTER BUTTONS =================
 
-    private void setupChips() {
-        setupChip(chipWifi,      "wifi",            selectedAmenities);
-        setupChip(chipParking,   "parking",         selectedAmenities);
-        setupChip(chipSecurity,  "security lights", selectedAmenities);
-        setupChip(chipBorehole,  "borehole water",  selectedAmenities);
-        setupChip(chipStudio,    "studio",          selectedHouseTypes);
-        setupChip(chipBedsitter, "bedsitter",       selectedHouseTypes);
-        setupChip(chipOneBed,    "1 bedroom",       selectedHouseTypes);
+    private void setupFilterButtons() {
+        setupFilterButton(btnWifi,      "wifi",            selectedAmenities);
+        setupFilterButton(btnParking,   "parking",         selectedAmenities);
+        setupFilterButton(btnSecurity,  "security lights", selectedAmenities);
+        setupFilterButton(btnBorehole,  "borehole water",  selectedAmenities);
+        setupFilterButton(btnStudio,    "studio",          selectedHouseTypes);
+        setupFilterButton(btnBedsitter, "bedsitter",       selectedHouseTypes);
+        setupFilterButton(btnOneBed,    "1 bedroom",       selectedHouseTypes);
     }
 
-    private void setupChip(Chip chip, String value, Set<String> set) {
-        if (chip == null) return;
-        updateChipStyle(chip, set.contains(value.toLowerCase()));
-        chip.setOnClickListener(v -> {
+    private void setupFilterButton(Button btn, String value, Set<String> set) {
+        if (btn == null) return;
+        updateFilterButtonStyle(btn, false); // all start inactive
+        btn.setOnClickListener(v -> {
             String key = value.toLowerCase();
-            if (set.contains(key)) { set.remove(key); updateChipStyle(chip, false); }
-            else                   { set.add(key);    updateChipStyle(chip, true);  }
+            boolean nowSelected = !set.contains(key);
+            if (nowSelected) set.add(key); else set.remove(key);
+            updateFilterButtonStyle(btn, nowSelected);
             applyFiltersAndDisplay();
         });
     }
 
-    private void updateChipStyle(Chip chip, boolean selected) {
-        if (selected) {
-            chip.setBackgroundTintList(
-                    ContextCompat.getColorStateList(this, R.color.yellow));
-            chip.setTextColor(getResources().getColor(android.R.color.black));
-        } else {
-            chip.setBackgroundTintList(
-                    ContextCompat.getColorStateList(this, R.color.grey));
-            chip.setTextColor(getResources().getColor(android.R.color.black));
-        }
+    /** Yellow = active filter, grey = inactive. */
+    private void updateFilterButtonStyle(Button btn, boolean selected) {
+        btn.setBackgroundTintList(ContextCompat.getColorStateList(
+                this, selected ? R.color.yellow : R.color.grey));
+        btn.setTextColor(ContextCompat.getColor(this, android.R.color.black));
     }
 
     // ================= SEARCH =================
@@ -573,25 +570,21 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
     private void setupSaveSearchButton() {
         if (saveSearchButton == null) return;
         saveSearchButton.setOnClickListener(v -> {
-            String resolvedUserId = resolveUserId();
-            if (resolvedUserId.isEmpty()) {
+            String uid = resolveUserId();
+            if (uid.isEmpty()) {
                 showToast(getString(R.string.saved_search_missing_user));
                 return;
             }
-            saveCurrentSearch(resolvedUserId);
+            saveCurrentSearch(uid);
         });
     }
 
-    /**
-     * Saves current filter state directly to Firestore.
-     * Uses local filter variables — no FilterState singleton dependency.
-     */
-    private void saveCurrentSearch(String resolvedUserId) {
+    private void saveCurrentSearch(String uid) {
         if (saveSearchButton != null) saveSearchButton.setEnabled(false);
 
         Map<String, Object> search = new HashMap<>();
-        search.put("minPrice",     minPrice);
-        search.put("maxPrice",     maxPrice);
+        search.put("minPrice",     budgetFilterActive ? minPrice : 0);
+        search.put("maxPrice",     budgetFilterActive ? maxPrice : 0);
         search.put("neighborhood", currentNeighborhood);
         search.put("amenities",    new ArrayList<>(selectedAmenities));
         search.put("houseTypes",   new ArrayList<>(selectedHouseTypes));
@@ -599,7 +592,7 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
         search.put("savedAt",      System.currentTimeMillis());
 
         db.collection("users")
-                .document(resolvedUserId)
+                .document(uid)
                 .collection("savedSearches")
                 .add(search)
                 .addOnSuccessListener(ref -> runOnUiThread(() -> {
@@ -616,15 +609,12 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
     // ================= TOOLTIPS + FIRST-TIME TIPS =================
 
     private void setupTooltipsAndFirstTimeHelp() {
-        if (filterButton != null) {
+        if (filterButton != null)
             TooltipCompat.setTooltipText(filterButton, getString(R.string.tip_filter_button));
-        }
-        if (favoritesButton != null) {
+        if (favoritesButton != null)
             TooltipCompat.setTooltipText(favoritesButton, getString(R.string.tip_open_favorites));
-        }
-        if (saveSearchButton != null) {
+        if (saveSearchButton != null)
             TooltipCompat.setTooltipText(saveSearchButton, getString(R.string.tip_save_search));
-        }
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         if (prefs.getBoolean(KEY_TIPS_SHOWN, false)) return;
@@ -632,23 +622,25 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
         new AlertDialog.Builder(this)
                 .setTitle(R.string.quick_tips_title)
                 .setMessage(getString(R.string.quick_tips_message))
-                .setPositiveButton(android.R.string.ok, (dialog, which) ->
+                .setPositiveButton(android.R.string.ok, (d, w) ->
                         prefs.edit().putBoolean(KEY_TIPS_SHOWN, true).apply())
-                .setOnCancelListener(dialog ->
+                .setOnCancelListener(d ->
                         prefs.edit().putBoolean(KEY_TIPS_SHOWN, true).apply())
                 .show();
     }
 
     // ================= LANGUAGE =================
 
-    private void setupLanguageSwitch() {
-        setupLanguageSwitch(languageSwitch);
-    }
+    private void setupLanguageSwitch() { setupLanguageSwitch(languageSwitch); }
 
     @Override
     protected void onLanguageChanged(boolean isSwahili) {
-        welcomeName.setText(" " + (userName.isEmpty() ? getLocalizedGuestName() : userName));
-        updateBudgetText(minPrice, maxPrice);
+        updateWelcomeName();
+        if (!budgetFilterActive) {
+            budgetRangeText.setText(isSwahili ? "Hakuna kikomo cha bei" : "All prices");
+        } else {
+            updateBudgetText(minPrice, maxPrice);
+        }
         updateResultsCount(adapter != null ? adapter.getItemCount() : 0);
     }
 
@@ -696,14 +688,14 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
         registerForTranslation(findViewById(R.id.textView12),    R.string.home_budget_title);
         registerForTranslation(findViewById(R.id.textView13),    R.string.home_budget_range_default);
         registerForTranslation(findViewById(R.id.textView14),    R.string.home_amenities_title);
-        registerForTranslation(findViewById(R.id.chip),          R.string.wifi);
-        registerForTranslation(findViewById(R.id.chip2),         R.string.parking);
-        registerForTranslation(findViewById(R.id.chip3),         R.string.security);
-        registerForTranslation(findViewById(R.id.chip4),         R.string.borehole);
+        registerForTranslation(findViewById(R.id.btnWifi),       R.string.wifi);
+        registerForTranslation(findViewById(R.id.btnParking),    R.string.parking);
+        registerForTranslation(findViewById(R.id.btnSecurity),   R.string.security);
+        registerForTranslation(findViewById(R.id.btnBorehole),   R.string.borehole);
         registerForTranslation(findViewById(R.id.textView15),    R.string.house_type);
-        registerForTranslation(findViewById(R.id.chip5),         R.string.studio);
-        registerForTranslation(findViewById(R.id.chip6),         R.string.bedsitter);
-        registerForTranslation(findViewById(R.id.chip7),         R.string.onebed);
+        registerForTranslation(findViewById(R.id.btnStudio),     R.string.studio);
+        registerForTranslation(findViewById(R.id.btnBedsitter),  R.string.bedsitter);
+        registerForTranslation(findViewById(R.id.btnOneBed),     R.string.onebed);
         registerForTranslation(findViewById(R.id.button),        R.string.list);
         registerForTranslation(findViewById(R.id.button2),       R.string.map);
         registerForTranslation(findViewById(R.id.editTextText2), R.string.results);
@@ -728,7 +720,6 @@ public class HomePage extends BaseActivity implements MapFragment.OnListingSelec
         return isSwahiliModeEnabled() ? "Mgeni" : "Guest";
     }
 
-    /** Returns a non-null userId, falling back to SessionManager. */
     private String resolveUserId() {
         if (userId != null && !userId.trim().isEmpty()) return userId;
         String fromSession = SessionManager.getInstance(this).getUserId();

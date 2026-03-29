@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:text="@string/welcome_text"
             android:textColor="@color/green"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <TextView
@@ -112,9 +112,11 @@
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:background="@drawable/textview1"
             android:hint="@string/search_bar_hint"
-            android:paddingVertical="6dp" />
+            android:padding="6dp"
+            android:background="@drawable/textview1"
+            android:iconifiedByDefault="false" />
+
 
         <androidx.constraintlayout.utils.widget.ImageFilterButton
             android:id="@+id/imageFilterButton"
@@ -134,10 +136,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="0dp"
+        android:visibility="gone"
         android:layout_marginTop="6dp"
         android:orientation="vertical"
+
         android:padding="10dp"
-        android:visibility="gone"
         android:background="@color/offwhite"
         app:layout_constraintTop_toBottomOf="@+id/searchandfilter"
         app:layout_constraintStart_toStartOf="parent"
@@ -160,7 +163,7 @@
             android:layout_marginBottom="6dp"
             android:text="@string/home_budget_range_default"
             android:textColor="@color/green"
-            android:textSize="14sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <SeekBar
@@ -177,49 +180,52 @@
             android:layout_marginBottom="8dp"
             android:text="@string/home_amenities_title"
             android:textColor="@color/black"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="start"
             android:layout_marginBottom="12dp">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip"
+            <Button
+                android:id="@+id/btnWifi"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
+                android:layout_marginEnd="4dp"
                 android:backgroundTint="@color/lightgrey"
                 android:text="@string/wifi"
+                android:textColor="@color/black"
                 android:textSize="12sp" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip2"
+            <Button
+                android:id="@+id/btnParking"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
+                android:layout_marginEnd="4dp"
                 android:backgroundTint="@color/lightgrey"
                 android:text="@string/parking"
+                android:textColor="@color/black"
                 android:textSize="12sp" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip3"
+            <Button
+                android:id="@+id/btnSecurity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
+                android:layout_marginEnd="4dp"
                 android:backgroundTint="@color/lightgrey"
                 android:text="@string/security"
+                android:textColor="@color/black"
                 android:textSize="12sp" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip4"
+            <Button
+                android:id="@+id/btnBorehole"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/lightgrey"
                 android:text="@string/borehole"
+                android:textColor="@color/black"
                 android:textSize="12sp" />
 
         </LinearLayout>
@@ -230,7 +236,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:text="@string/house_type"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/black" />
 
@@ -240,30 +246,36 @@
             android:orientation="horizontal"
             android:gravity="start">
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip5"
+            <Button
+                android:id="@+id/btnStudio"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6dp"
+                android:paddingVertical="5dp"
                 android:backgroundTint="@color/lightgrey"
                 android:text="@string/studio"
+                android:textColor="@color/black"
                 android:textSize="12sp" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip6"
+            <Button
+                android:id="@+id/btnBedsitter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6dp"
+                android:paddingVertical="5dp"
                 android:backgroundTint="@color/lightgrey"
                 android:text="@string/bedsitter"
+                android:textColor="@color/black"
                 android:textSize="12sp" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chip7"
+            <Button
+                android:id="@+id/btnOneBed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/lightgrey"
                 android:text="@string/onebed"
+                android:paddingVertical="5dp"
+                android:textColor="@color/black"
                 android:textSize="12sp" />
 
         </LinearLayout>
@@ -363,33 +375,35 @@
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_weight="1"
             android:layout_marginEnd="6dp"
-            android:backgroundTint="@color/grey"
+            android:layout_weight="1"
+            android:backgroundTint="@color/lightgrey"
             android:text="@string/langata"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:textSize="14sp" />
+
         <Button
             android:id="@+id/rongaib"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_weight="1"
             android:layout_marginEnd="6dp"
-            android:backgroundTint="@color/grey"
+            android:layout_weight="1"
+            android:backgroundTint="@color/lightgrey"
             android:text="@string/rongai"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:textSize="14sp" />
+
         <Button
             android:id="@+id/kahawab"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="40dp"
-            android:layout_weight="1"
             android:layout_marginEnd="6dp"
-            android:backgroundTint="@color/grey"
+            android:layout_weight="1"
+            android:backgroundTint="@color/lightgrey"
             android:text="@string/kahawa"
-            android:textColor="@color/white"
+            android:textColor="@color/black"
             android:textSize="14sp" />
     </LinearLayout>
 
