@@ -21,13 +21,18 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         
-      - name: Install gradle
+      - name: Clean Gradle environment
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gradle
-          
+          unset GRADLE_OPTS
+          unset JAVA_OPTS
+          chmod +x gradlew
+        
       - name: Build APK
-        run: gradle assembleDebug
+        run: |
+          ./gradlew assembleDebug --no-daemon -Dorg.gradle.jvmargs=-Xmx2048m
+        env:
+          GRADLE_OPTS: ""
+          JAVA_OPTS: ""
         
       - name: Upload APK
         uses: actions/upload-artifact@v4
