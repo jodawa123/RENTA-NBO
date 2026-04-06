@@ -20,7 +20,7 @@ public class Listing {
     private Landlord landlord;
     private Object createdAt;
 
-    // Empty constructor for Firestore
+    // Empty constructor for Firestore Firebase
     public Listing() {}
 
     public Listing(String title, int price, String neighborhood, String houseType,
