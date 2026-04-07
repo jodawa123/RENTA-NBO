@@ -11,7 +11,7 @@
 
 ## 📋 **Problem Statement**
 
-House hunting in Nairobi is a nightmare for students and recent graduates:
+House hunting in Nairobi is a major problem for students and recent graduates:
 
 - **Skyrocketing rents:** KSh 30k+ for basic 1-bedrooms
 - **Scattered listings:** Informal posts on WhatsApp groups
@@ -61,7 +61,7 @@ Tap the search icon. Slide budget filter (e.g., 20k-25k). Check amenities (WiFi,
 Tap any pin to see photos, price, description, and landlord +254 contact. Swipe left/right through similar listings.
 
 ### **Step 5: Save & Get Alerts**
-Heart icon to save favorites. Tap "Save This Search" for automatic SMS alerts on new matches like:
+Heart icon to save favorite houses. Tap "Save This Search" for automatic SMS alerts on new matches like:
 > *"New KSh 18k bed-sitter with WiFi in Kahawa! Tap to view."*
 
 ### **Step 6: Contact Landlord**
